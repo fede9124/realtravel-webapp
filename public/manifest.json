@@ -1,0 +1,48 @@
+{
+  "name": "Real Travel",
+  "short_name": "Real Travel",
+  "description": "Descubre destinos a través de historias locales",
+  "start_url": "/explorar",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf9f6",
+  "theme_color": "#C41230",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explorar",
+      "short_name": "Explorar",
+      "url": "/explorar",
+      "description": "Descubre nuevos lugares"
+    },
+    {
+      "name": "Mapa",
+      "short_name": "Mapa",
+      "url": "/mapa",
+      "description": "Ver mapa interactivo"
+    },
+    {
+      "name": "Favoritos",
+      "short_name": "Guardados",
+      "url": "/favoritos",
+      "description": "Acceder sin conexión"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

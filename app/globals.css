@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@theme {
+  --color-crimson: #c41230;
+  --color-crimson-hover: #a30f28;
+  --color-crimson-light: #fdeef0;
+  --color-surface: #faf9f6;
+  --color-card: #fffefb;
+  --color-text-primary: #1c1a17;
+  --color-text-muted: #6e6961;
+  --color-border: #e7e2da;
+  --color-map-placeholder: #e8e3da;
+  --color-user-pin: #2563eb;
+
+  /* Serif editorial para titulares; sans utilitaria para UI, kickers y body */
+  --font-family-display: var(--font-display), 'Fraunces', Georgia, serif;
+  --font-family-heading: var(--font-body), 'DM Sans', system-ui, sans-serif;
+  --font-family-body: var(--font-body), 'DM Sans', system-ui, sans-serif;
+
+  --shadow-card: 0 1px 3px rgba(45, 20, 8, 0.06), 0 4px 16px rgba(45, 20, 8, 0.07);
+  --shadow-card-hover: 0 4px 12px rgba(45, 20, 8, 0.10), 0 14px 36px rgba(45, 20, 8, 0.12);
+  --shadow-fab: 0 4px 20px rgba(196, 18, 48, 0.3);
+  --shadow-panel: 2px 0 20px rgba(45, 20, 8, 0.07);
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family-body);
+  font-size: 16px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 130% 55% at -5% -5%, rgba(196, 18, 48, 0.045) 0%, transparent 58%),
+    radial-gradient(ellipse 90% 45% at 105% 105%, rgba(196, 18, 48, 0.025) 0%, transparent 58%),
+    var(--color-surface);
+  background-attachment: fixed;
+  line-height: 1.6;
+  font-family: var(--font-family-body);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-display);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Consistent focus ring — accessible, branded */
+:focus-visible {
+  outline: 2px solid var(--color-crimson);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Clickable always shows pointer */
+button, a, [role="button"], [role="tab"] {
+  cursor: pointer;
+}
+
+/* Hovers con tokens — para server components que no pueden usar handlers */
+.hover-surface:hover {
+  background: var(--color-surface);
+}
+.hover-crimson-light:hover {
+  background: var(--color-crimson-light);
+}
+
+.scroll-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── View Transitions — la card morfea hacia el hero del detalle ──
+   Las navegaciones se inician en TransitionLink; aquí solo la coreografía. */
+::view-transition-group(*) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); /* ease-out-expo */
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+}
+/* El snapshot de la imagen llena el rect del grupo sin deformarse de golpe */
+::view-transition-old(*),
+::view-transition-new(*) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
+
+/* Skeleton shimmer — placeholder de carga de imágenes */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--color-border) 25%, #f0ebe4 50%, var(--color-border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Scroll reveal — cards animate in via IntersectionObserver */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.45s var(--ease-smooth), transform 0.45s var(--ease-smooth);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
