@@ -3,8 +3,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import {
-  MapPin, Globe, Buildings, Star, Compass,
+  MapPin, Globe, Buildings, Star, Compass, Path,
   Mountains, Bank, Waves, ForkKnife, Palette, Tent,
 } from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
@@ -13,7 +14,7 @@ import { Card } from '@/components/ui/Card'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
-import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS } from '@/lib/data'
+import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findLugar, findDestino as findDest } from '@/lib/data'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -77,8 +78,20 @@ export default function ExplorarPage() {
   const filteredLugares = useMemo(() => LUGARES.filter(matches), [query, activeMood, activeFilter])
   const filteredDestinos = useMemo(() => DESTINOS.filter(matches), [query, activeMood, activeFilter])
 
+  const filteredRutas = useMemo(() => {
+    if (activeMood || activeFilter !== 'todos') return []
+    if (query.trim() === '') return RUTAS
+    const q = norm(query.trim())
+    return RUTAS.filter(r => {
+      const destino = findDest(r.destinoId)
+      const haystack = norm(`${r.title} ${r.description} ${destino?.title ?? ''} ${destino?.location ?? ''}`)
+      return haystack.includes(q)
+    })
+  }, [query, activeMood, activeFilter])
+
+  const router = useRouter()
   const hasActiveFilters = query.trim() !== '' || activeMood !== null || activeFilter !== 'todos'
-  const noResults = filteredLugares.length === 0 && filteredDestinos.length === 0
+  const noResults = filteredLugares.length === 0 && filteredDestinos.length === 0 && filteredRutas.length === 0
 
   const clearFilters = () => {
     setQuery('')
@@ -95,9 +108,9 @@ export default function ExplorarPage() {
           style={{
             fontFamily: 'var(--font-family-display)',
             color: 'var(--color-text-primary)',
-            fontSize: 'clamp(3.5rem, 6vw, 6.5rem)',
+            fontSize: 'clamp(2.25rem, 4vw, 3.5rem)',
             letterSpacing: '-0.02em',
-            lineHeight: 0.95,
+            lineHeight: 1,
             fontWeight: 600,
           }}
         >
@@ -107,10 +120,12 @@ export default function ExplorarPage() {
 
       {/* ── Search + location chips ── */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-12" data-delay="50">
-        <div className="max-w-xl mb-4">
-          <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, ciudades, países..." />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <ChipFilter chips={LOCATION_FILTERS} activeId={activeFilter} onChange={setActiveFilter} className="flex-shrink-0" />
+          <div className="sm:ml-auto w-full sm:w-64 lg:w-72">
+            <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, ciudades..." />
+          </div>
         </div>
-        <ChipFilter chips={LOCATION_FILTERS} activeId={activeFilter} onChange={setActiveFilter} />
       </div>
 
       {/* ── Featured hero — full-bleed, no horizontal padding ── */}
@@ -317,7 +332,7 @@ export default function ExplorarPage() {
 
       {/* ── Destinos ── */}
       {filteredDestinos.length > 0 && (
-        <section aria-labelledby="heading-destinos" className="px-5 sm:px-8 lg:px-12 pb-24">
+        <section aria-labelledby="heading-destinos" className="px-5 sm:px-8 lg:px-12 pb-16">
           <SectionHeader
             id="heading-destinos"
             title="Destinos"
@@ -335,6 +350,96 @@ export default function ExplorarPage() {
                 onFavoriteToggle={() => toggleFavorite(destino.id)}
               />
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Rutas ── */}
+      {filteredRutas.length > 0 && (
+        <section aria-labelledby="heading-rutas" className="px-5 sm:px-8 lg:px-12 pb-24">
+          <SectionHeader
+            id="heading-rutas"
+            title="Rutas"
+            count={filteredRutas.length}
+            filtered={hasActiveFilters}
+          />
+          <div className="grid gap-x-6 gap-y-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))' }}>
+            {filteredRutas.map(ruta => {
+              const destino = findDest(ruta.destinoId)
+              const stops = ruta.stops.map(findLugar).filter(Boolean)
+              return (
+                <div
+                  key={ruta.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push(`/rutas/${ruta.id}`)}
+                  onKeyDown={e => e.key === 'Enter' && router.push(`/rutas/${ruta.id}`)}
+                  className="reveal rounded-2xl p-6 cursor-pointer transition-shadow hover:shadow-lg"
+                  style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <p
+                        className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                        style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                      >
+                        {destino?.title ?? ruta.destinoId}
+                      </p>
+                      <h3
+                        className="text-lg font-bold"
+                        style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-display)' }}
+                      >
+                        {ruta.title}
+                      </h3>
+                    </div>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--color-crimson-light)' }}
+                    >
+                      <Path size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                    </div>
+                  </div>
+                  <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+                    {ruta.description}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    {[ruta.duration, ruta.distance, `${ruta.stops.length} paradas`].map(tag => (
+                      <span
+                        key={tag}
+                        className="text-xs px-2.5 py-1 rounded-lg font-medium"
+                        style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {stops.map((lugar, i) => lugar && (
+                      <div key={lugar.id} className="flex items-center gap-2.5">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+                            style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
+                          >
+                            {i + 1}
+                          </div>
+                          {i < stops.length - 1 && (
+                            <div className="w-px h-3" style={{ background: 'var(--color-border)' }} />
+                          )}
+                        </div>
+                        <Link
+                          href={`/explorar/${lugar.id}`}
+                          className="text-sm font-medium hover:underline"
+                          style={{ color: 'var(--color-text-primary)' }}
+                        >
+                          {lugar.title}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </section>
       )}

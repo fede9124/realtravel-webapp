@@ -30,3 +30,6 @@ next-env.d.ts
 
 # Impeccable (critiques locales)
 .impeccable/
+
+# Playwright CLI session artifacts
+.playwright-cli/

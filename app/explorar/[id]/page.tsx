@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useState } from 'react'
 import {
@@ -16,7 +17,7 @@ import {
   Lightbulb,
   Star,
   ChatText,
-  MapTrifold,
+  ArrowSquareOut,
 } from '@phosphor-icons/react'
 import { use } from 'react'
 import { notFound } from 'next/navigation'
@@ -24,6 +25,13 @@ import { Accordion, type AccordionItem } from '@/components/ui/Accordion'
 import { Card } from '@/components/ui/Card'
 import { findLugar, LUGARES, type Lugar } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
+
+const PinMapView = dynamic(() => import('@/components/map/PinMapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full animate-pulse" style={{ background: 'var(--color-map-placeholder)' }} />
+  ),
+})
 
 function buildAccordion(lugar: Lugar): AccordionItem[] {
   return [
@@ -148,7 +156,18 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
           <div className="lg:col-span-2 flex flex-col gap-7">
             {/* Title block */}
             <div>
-              <div className="flex items-center gap-2 mb-2.5">
+              <h1
+                className="text-2xl sm:text-3xl font-bold mb-3"
+                style={{
+                  color: 'var(--color-text-primary)',
+                  fontFamily: 'var(--font-family-heading)',
+                  letterSpacing: '-0.01em',
+                  textWrap: 'balance',
+                } as React.CSSProperties}
+              >
+                {lugar.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <span
                   className="text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full"
                   style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
@@ -167,17 +186,6 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
                   <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>(124 reseñas)</span>
                 </div>
               </div>
-              <h1
-                className="text-3xl font-bold"
-                style={{
-                  color: 'var(--color-text-primary)',
-                  fontFamily: 'var(--font-family-heading)',
-                  letterSpacing: '-0.01em',
-                  textWrap: 'balance',
-                } as React.CSSProperties}
-              >
-                {lugar.title}
-              </h1>
             </div>
 
             {/* Accordion */}
@@ -230,18 +238,27 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
               </button>
 
               {/* Map preview */}
-              <Link
-                href="/mapa"
-                className="rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-80"
-                style={{
-                  height: '140px',
-                  background: 'var(--color-map-placeholder)',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
-                <MapTrifold size={28} weight="regular" aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
-                Ver en el mapa
-              </Link>
+              {lugar.lat && lugar.lng ? (
+                <div className="rounded-xl overflow-hidden" style={{ height: '160px', position: 'relative' }}>
+                  <PinMapView lat={lugar.lat} lng={lugar.lng} title={lugar.title} />
+                  <Link
+                    href="/mapa"
+                    className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
+                    style={{ background: 'var(--color-card)', color: 'var(--color-text-primary)', boxShadow: 'var(--shadow-card)' }}
+                  >
+                    <ArrowSquareOut size={12} aria-hidden="true" />
+                    Abrir mapa
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  href="/mapa"
+                  className="rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-80"
+                  style={{ height: '160px', background: 'var(--color-map-placeholder)', color: 'var(--color-text-muted)' }}
+                >
+                  Ver en el mapa
+                </Link>
+              )}
             </div>
           </div>
         </div>

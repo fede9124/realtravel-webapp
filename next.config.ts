@@ -8,6 +8,10 @@ const config: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+  },
+  experimental: {
+    optimizePackageImports: ['@phosphor-icons/react'],
   },
   headers: async () => [
     {

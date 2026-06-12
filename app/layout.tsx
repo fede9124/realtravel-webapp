@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${fraunces.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${fraunces.variable} ${dmSans.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${fraunces.variable} ${dmSans.variable}`}>
         <PwaRegister />
         <AppShell>{children}</AppShell>

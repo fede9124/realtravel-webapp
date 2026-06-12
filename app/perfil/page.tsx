@@ -16,9 +16,9 @@ export default function PerfilPage() {
           style={{
             fontFamily: 'var(--font-family-display)',
             color: 'var(--color-text-primary)',
-            fontSize: 'clamp(3.5rem, 6vw, 6.5rem)',
+            fontSize: 'clamp(2.25rem, 4vw, 3.5rem)',
             letterSpacing: '-0.02em',
-            lineHeight: 0.95,
+            lineHeight: 1,
             fontWeight: 600,
           }}
         >

@@ -88,10 +88,10 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
 
       {/* Content */}
       <div className="px-5 sm:px-8 lg:px-12 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 py-10">
+        <div className={`grid grid-cols-1 ${comercio.benefit ? 'lg:grid-cols-3' : ''} gap-10 py-10`}>
 
           {/* Left — info */}
-          <div className="lg:col-span-2 flex flex-col gap-8">
+          <div className={`${comercio.benefit ? 'lg:col-span-2' : ''} flex flex-col gap-8`}>
 
             {/* Description */}
             <p

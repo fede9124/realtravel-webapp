@@ -12,7 +12,7 @@ import type { Icon } from '@phosphor-icons/react'
 import { Card } from '@/components/ui/Card'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
-import { findDestino, lugaresDeDestino, comerciosDeDestino } from '@/lib/data'
+import { findDestino, lugaresDeDestino, comerciosDeDestino, reviewsDeDestino } from '@/lib/data'
 
 // ─── Data ───────────────────────────────────────────────────────────────────
 
@@ -31,6 +31,7 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
   const comercios = comerciosDeDestino(destino.id)
   const gastronomia = comercios.filter(c => !c.badge)
   const beneficios = comercios.filter(c => !!c.badge)
+  const reviews = reviewsDeDestino(destino.id)
 
   const facts = [
     { Icon: Sun,       label: 'Clima',       value: destino.facts.clima },
@@ -143,39 +144,30 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
         className="border-b"
         style={{ background: 'var(--color-card)', borderColor: 'var(--color-border)' }}
       >
-        <div className="px-5 sm:px-8 lg:px-12 py-6 w-full overflow-x-auto scroll-hide">
-          <dl className="flex items-center gap-0 min-w-max">
+        <div className="px-5 sm:px-8 lg:px-12 py-6 w-full">
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-0">
             {facts.map((fact, i) => (
-              <div key={fact.label} className="flex items-center">
-                <div className="flex items-center gap-3.5 px-7 first:pl-0">
-                  <fact.Icon
-                    size={18}
-                    weight="regular"
-                    aria-hidden="true"
-                    style={{ color: 'var(--color-crimson)', flexShrink: 0 }}
-                  />
-                  <div>
-                    <dt
-                      className="text-[10px] font-semibold uppercase tracking-widest mb-0.5"
-                      style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
-                    >
-                      {fact.label}
-                    </dt>
-                    <dd
-                      className="text-sm font-semibold"
-                      style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
-                    >
-                      {fact.value}
-                    </dd>
-                  </div>
+              <div key={fact.label} className="flex items-center gap-3.5 sm:px-5 first:sm:pl-0 sm:border-r last:sm:border-r-0" style={{ borderColor: 'var(--color-border)' }}>
+                <fact.Icon
+                  size={18}
+                  weight="regular"
+                  aria-hidden="true"
+                  style={{ color: 'var(--color-crimson)', flexShrink: 0 }}
+                />
+                <div>
+                  <dt
+                    className="text-[10px] font-semibold uppercase tracking-widest mb-0.5"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                  >
+                    {fact.label}
+                  </dt>
+                  <dd
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
+                  >
+                    {fact.value}
+                  </dd>
                 </div>
-                {i < facts.length - 1 && (
-                  <div
-                    className="h-8 w-px flex-shrink-0"
-                    style={{ background: 'var(--color-border)' }}
-                    aria-hidden="true"
-                  />
-                )}
               </div>
             ))}
           </dl>
@@ -233,7 +225,7 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
 
         {/* Red Travel */}
         {beneficios.length > 0 && (
-          <section aria-labelledby="heading-red" className="py-12">
+          <section aria-labelledby="heading-red" className="py-12 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <DestSection id="heading-red" eyebrow="Beneficios exclusivos" title="Red Travel" count={beneficios.length} />
             <div
               className="grid gap-x-6 gap-y-10"
@@ -241,6 +233,94 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
             >
               {beneficios.map((place, i) => (
                 <Card key={place.id} {...place} revealDelay={i * 70} href={`/red-travel/${place.id}`} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Reviews */}
+        {reviews.length > 0 && (
+          <section aria-labelledby="heading-reviews" className="py-12">
+            <div
+              className="reveal flex items-end justify-between mb-7 pb-3 border-b"
+              style={{ borderColor: 'var(--color-text-primary)' }}
+            >
+              <div>
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                  style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                >
+                  Opiniones
+                </p>
+                <h2
+                  id="heading-reviews"
+                  style={{
+                    fontFamily: 'var(--font-family-display)',
+                    color: 'var(--color-text-primary)',
+                    fontSize: 'clamp(1.75rem, 2.5vw, 2.25rem)',
+                    letterSpacing: '-0.01em',
+                    fontWeight: 600,
+                    lineHeight: 1,
+                  }}
+                >
+                  Reseñas de viajeros
+                </h2>
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0 mb-0.5">
+                <Star size={14} weight="fill" color="#FBBF24" aria-hidden="true" />
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)', fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {destino.rating}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  ({destino.reviewCount.toLocaleString('es')} reseñas)
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="reveal rounded-2xl p-6"
+                  style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
+                    >
+                      {review.avatar}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+                        {review.author}
+                      </p>
+                      <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                        {new Date(review.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={12}
+                          weight={i < review.rating ? 'fill' : 'regular'}
+                          aria-hidden="true"
+                          style={{ color: i < review.rating ? '#FBBF24' : 'var(--color-border)' }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: 'var(--color-text-primary)', lineHeight: '1.7' }}
+                  >
+                    {review.text}
+                  </p>
+                </div>
               ))}
             </div>
           </section>

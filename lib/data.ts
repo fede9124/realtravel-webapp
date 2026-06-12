@@ -17,6 +17,8 @@ export interface Lugar {
   hours: string
   entry: string
   destinoId?: string
+  lat?: number
+  lng?: number
 }
 
 export interface Destino {
@@ -71,11 +73,12 @@ export const LUGARES: Lugar[] = [
       'Templo católico de gran valor histórico y arquitectónico. Construida en el siglo XIX, destaca por su fachada neogótica y su interior decorado con mosaicos que narran la vida de la santa italiana canonizada en 1940. Lugar de peregrinación y recogimiento que atrae a miles de visitantes cada año.',
     hours: 'Lun–Sáb 9:00–20:00 · Dom 10:00–22:00',
     entry: 'Gratuita',
+    lat: 40.4232, lng: -3.6977,
   },
   {
     kind: 'lugar',
     id: 'plaza-mayor',
-    image: 'https://images.unsplash.com/photo-1543702303-55e3b3e73cef?w=600',
+    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
     category: 'Plaza',
     title: 'Plaza Mayor de Madrid',
     location: 'España',
@@ -86,11 +89,12 @@ export const LUGARES: Lugar[] = [
       'El corazón porticado de Madrid desde 1619. Bajo sus arcos conviven cafés centenarios, tiendas de sombreros que resisten al tiempo y la estatua ecuestre de Felipe III. Los domingos por la mañana, los coleccionistas de sellos y monedas toman los soportales como lo hacen desde hace un siglo.',
     hours: 'Espacio abierto, 24 horas',
     entry: 'Gratuita',
+    lat: 40.4153, lng: -3.7074,
   },
   {
     kind: 'lugar',
     id: 'sagrada-familia',
-    image: 'https://images.unsplash.com/photo-1583779457094-ab6f77f7bf57?w=600',
+    image: 'https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?w=600',
     category: 'Monumento',
     title: 'Sagrada Família',
     location: 'España',
@@ -101,6 +105,7 @@ export const LUGARES: Lugar[] = [
       'La obra inacabada de Gaudí lleva más de 140 años en construcción y sigue siendo el edificio más visitado de España. Sus fachadas narran la vida de Cristo en piedra; su interior, un bosque de columnas que cambia de color según la hora del día. Reserva con anticipación: las entradas vuelan.',
     hours: 'Lun–Dom 9:00–20:00',
     entry: 'Desde €26 · Reserva online',
+    lat: 41.4036, lng: 2.1744,
   },
   {
     kind: 'lugar',
@@ -116,6 +121,7 @@ export const LUGARES: Lugar[] = [
       'Ciudad palatina nazarí suspendida sobre Granada. Sus patios de agua, yeserías y jardines del Generalife condensan ocho siglos de al-Ándalus. El cupo diario de visitantes es estricto: compra la entrada semanas antes y entra al Palacio de los Leones en el horario exacto que indica tu ticket.',
     hours: 'Lun–Dom 8:30–20:00',
     entry: 'Desde €19 · Cupo diario limitado',
+    lat: 37.1762, lng: -3.5882,
   },
   {
     kind: 'lugar',
@@ -131,6 +137,7 @@ export const LUGARES: Lugar[] = [
       'Levantado en ladrillo rojo para la Exposición Universal de 1888, el Arc de Triomf de Barcelona es la puerta de entrada al paseo de Lluís Companys. Sus frisos celebran la agricultura, la industria y el comercio; las tardes de domingo lo rodean patinadores y músicos callejeros.',
     hours: 'Espacio abierto, 24 horas',
     entry: 'Gratuita',
+    lat: 41.3910, lng: 2.1802,
   },
   {
     kind: 'lugar',
@@ -144,8 +151,9 @@ export const LUGARES: Lugar[] = [
     description:
       'Mil años de mosaicos dorados cubren las cúpulas de la basílica más bizantina de Occidente. Los tesoros saqueados de Constantinopla conviven con el cuerpo del evangelista Marcos, robado de Alejandría por dos mercaderes venecianos en el año 828. Sube al museo para ver los caballos de bronce originales.',
     hours: 'Lun–Sáb 9:30–17:15 · Dom 14:00–17:15',
-    entry: 'Basílica €3 · Pala d’Oro y museo aparte',
+    entry: "Basílica €3 · Pala d'Oro y museo aparte",
     destinoId: 'venecia',
+    lat: 45.4345, lng: 12.3393,
   },
   {
     kind: 'lugar',
@@ -161,6 +169,7 @@ export const LUGARES: Lugar[] = [
     hours: 'Espacio abierto, 24 horas',
     entry: 'Gratuita',
     destinoId: 'venecia',
+    lat: 45.4380, lng: 12.3358,
   },
   {
     kind: 'lugar',
@@ -176,6 +185,103 @@ export const LUGARES: Lugar[] = [
     hours: 'Lun–Dom 9:00–19:00',
     entry: 'Desde €30 · Incluye Museo Correr',
     destinoId: 'venecia',
+    lat: 45.4336, lng: 12.3403,
+  },
+  {
+    kind: 'lugar',
+    id: 'sacsayhuaman',
+    image: 'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?w=600',
+    category: 'Ruinas',
+    title: 'Sacsayhuamán',
+    location: 'Cusco, Perú',
+    rating: 4.8,
+    moods: ['historia', 'aventura', 'naturaleza'],
+    description:
+      'Fortaleza inca a 3.700 metros con bloques de piedra de hasta 120 toneladas ensamblados sin argamasa. Cada 24 de junio, el Inti Raymi recrea la ceremonia solar con miles de actores. Subí caminando desde la Plaza de Armas: 20 minutos cuesta arriba que valen cada jadeo.',
+    hours: 'Lun–Dom 7:00–18:00',
+    entry: 'Boleto turístico parcial S/70',
+    destinoId: 'cusco',
+    lat: -13.5088, lng: -71.9817,
+  },
+  {
+    kind: 'lugar',
+    id: 'san-blas',
+    image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
+    category: 'Barrio',
+    title: 'Barrio de San Blas',
+    location: 'Cusco, Perú',
+    rating: 4.7,
+    moods: ['cultura', 'gastronomia'],
+    description:
+      'El barrio de los artesanos cusqueños: calles empedradas imposiblemente empinadas, talleres de talla en piedra, cafés en terrazas con vista a los tejados coloniales y el púlpito de San Blas, obra maestra tallada en un solo tronco de cedro.',
+    hours: 'Barrio abierto, 24 horas',
+    entry: 'Gratuita',
+    destinoId: 'cusco',
+    lat: -13.5160, lng: -71.9770,
+  },
+  {
+    kind: 'lugar',
+    id: 'mercado-san-pedro',
+    image: 'https://images.unsplash.com/photo-1583321500900-82807e458f3c?w=600',
+    category: 'Mercado',
+    title: 'Mercado de San Pedro',
+    location: 'Cusco, Perú',
+    rating: 4.6,
+    moods: ['gastronomia', 'cultura'],
+    description:
+      'El estómago de Cusco. Jugos de fruta por un sol, platos de cuy y chicharrón que no aparecen en ninguna guía, y señoras que llevan cuatro generaciones vendiendo en el mismo puesto. Ve temprano: a las 7 ya está en pleno movimiento.',
+    hours: 'Lun–Dom 6:00–18:00',
+    entry: 'Gratuita',
+    destinoId: 'cusco',
+    lat: -13.5227, lng: -71.9764,
+  },
+  {
+    kind: 'lugar',
+    id: 'fushimi-inari',
+    image: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=600',
+    category: 'Santuario',
+    title: 'Fushimi Inari-taisha',
+    location: 'Kyoto, Japón',
+    rating: 4.9,
+    moods: ['historia', 'cultura', 'naturaleza'],
+    description:
+      'Diez mil torii bermellón forman un túnel que sube el monte Inari durante 4 kilómetros. Los primeros tramos son turismo puro; la cima, a una hora de caminata, es silencio total y vistas sobre todo Kyoto. Madruga o ve al anochecer, cuando los zorros de piedra parecen cobrar vida.',
+    hours: 'Abierto 24 horas',
+    entry: 'Gratuita',
+    destinoId: 'kyoto',
+    lat: 34.9671, lng: 135.7727,
+  },
+  {
+    kind: 'lugar',
+    id: 'arashiyama',
+    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600',
+    category: 'Bosque',
+    title: 'Bosque de Bambú de Arashiyama',
+    location: 'Kyoto, Japón',
+    rating: 4.8,
+    moods: ['naturaleza', 'relajo'],
+    description:
+      'El sonido del viento entre los tallos de bambú de 20 metros tiene designación oficial de "paisaje sonoro de Japón". El paseo dura quince minutos; la experiencia depende de la hora. Antes de las 8 de la mañana, tendrás el sendero para vos solo.',
+    hours: 'Abierto 24 horas',
+    entry: 'Gratuita',
+    destinoId: 'kyoto',
+    lat: 35.0094, lng: 135.6680,
+  },
+  {
+    kind: 'lugar',
+    id: 'kinkaku-ji',
+    image: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=600',
+    category: 'Templo',
+    title: 'Kinkaku-ji',
+    location: 'Kyoto, Japón',
+    rating: 4.8,
+    moods: ['historia', 'cultura'],
+    description:
+      'El Pabellón Dorado es la postal de Kyoto: tres pisos cubiertos de pan de oro que se reflejan en el estanque como un espejismo. El edificio actual es una reconstrucción de 1955 (un monje quemó el original en 1950, historia que Mishima noveló). El jardín zen que lo rodea es lo que realmente merece la visita.',
+    hours: 'Lun–Dom 9:00–17:00',
+    entry: '¥500',
+    destinoId: 'kyoto',
+    lat: 35.0394, lng: 135.7292,
   },
 ]
 
@@ -445,14 +551,183 @@ export const COMERCIOS: Comercio[] = [
     location: 'Venecia, Italia',
     rating: 4.9,
     description:
-      'Matrimonio ítalo-texano al frente de una de las cocinas más respetadas de Castello. Pescado de la lonja de Chioggia, verduras de Sant’Erasmo y una carta de vinos naturales que vale el viaje.',
+      "Matrimonio ítalo-texano al frente de una de las cocinas más respetadas de Castello. Pescado de la lonja de Chioggia, verduras de Sant'Erasmo y una carta de vinos naturales que vale el viaje.",
     address: 'Campiello de la Pescaria 3968, Venecia',
     hours: 'Vie–Mar 12:45–14:15 · 19:30–22:00',
     phone: '+39 041 522 3812',
     website: 'ristorantealcovo.com',
     destinoId: 'venecia',
   },
+  {
+    kind: 'comercio',
+    id: 'chicha',
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600',
+    category: 'Restaurante',
+    title: 'Chicha por Gastón Acurio',
+    location: 'Cusco, Perú',
+    rating: 4.8,
+    badge: '10% OFF',
+    description:
+      'Cocina cusqueña de autor en una casona colonial de la Plaza Regocijo. Gastón Acurio lleva los platos andinos a otro nivel: rocoto relleno, chicharrón de chancho y postres con cacao de Quillabamba.',
+    address: 'Plaza Regocijo 261, 2do piso, Cusco',
+    hours: 'Lun–Dom 12:00–23:00',
+    phone: '+51 84 240 520',
+    website: 'chicha.com.pe',
+    benefit: '10% de descuento en la cuenta total al mostrar tu perfil Real Travel.',
+    conditions: ['Válido de lunes a jueves', 'No incluye bebidas alcohólicas', 'Reserva requerida', 'Una vez por usuario'],
+    destinoId: 'cusco',
+  },
+  {
+    kind: 'comercio',
+    id: 'cusco-textiles',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600',
+    category: 'Artesanía',
+    title: 'Centro de Textiles Tradicionales',
+    location: 'Cusco, Perú',
+    rating: 4.7,
+    description:
+      'Cooperativa de tejedoras quechuas que trabajan con técnicas prehispánicas. Cada pieza lleva semanas de trabajo manual con tintes naturales. El museo explica la simbología detrás de cada patrón.',
+    address: 'Av. El Sol 603, Cusco',
+    hours: 'Lun–Sáb 8:00–20:00 · Dom 9:00–18:00',
+    phone: '+51 84 228 117',
+    website: 'textilescusco.org',
+    destinoId: 'cusco',
+  },
+  {
+    kind: 'comercio',
+    id: 'nishiki-market',
+    image: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=600',
+    category: 'Mercado',
+    title: 'Nishiki Market',
+    location: 'Kyoto, Japón',
+    rating: 4.6,
+    description:
+      'Cinco cuadras de puestos bajo techo que los locales llaman "la cocina de Kyoto". Encurtidos de 400 años, dashi fresco, dulces de matcha artesanales y tamagoyaki hecho al momento. Visitá entre semana para evitar las multitudes.',
+    address: 'Nishikikoji-dori, Nakagyo-ku, Kyoto',
+    hours: 'Lun–Dom 9:00–18:00 (varía por puesto)',
+    destinoId: 'kyoto',
+  },
+  {
+    kind: 'comercio',
+    id: 'kyoto-machiya',
+    image: 'https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=600',
+    category: 'Alojamiento',
+    title: 'Machiya Guesthouse Kiyomizu',
+    location: 'Higashiyama, Kyoto',
+    rating: 4.9,
+    badge: '15% OFF',
+    description:
+      'Casa de madera tradicional de 120 años reconvertida en hospedaje boutique. Futones sobre tatami, baño de hinoki y desayuno kaiseki incluido. A cinco minutos a pie del templo Kiyomizu-dera.',
+    address: 'Higashiyama-ku, Kiyomizu 2-chome, Kyoto',
+    hours: 'Check-in 15:00–20:00 · Check-out 11:00',
+    phone: '+81 75 541 7803',
+    website: 'machiyakiyomizu.jp',
+    benefit: '15% de descuento en la tarifa por noche al reservar con tu perfil Real Travel.',
+    conditions: ['Estadía mínima 2 noches', 'Sujeto a disponibilidad', 'No válido en temporada de sakura', 'Una vez por usuario'],
+    destinoId: 'kyoto',
+  },
 ]
+
+// ─── Reseñas ─────────────────────────────────────────────────────────────────
+
+export interface Review {
+  id: string
+  author: string
+  avatar: string
+  date: string
+  rating: number
+  text: string
+  destinoId: string
+}
+
+export const REVIEWS: Review[] = [
+  {
+    id: 'r1', author: 'María García', avatar: 'M', date: '2026-03-15', rating: 5,
+    text: 'Venecia en noviembre es otra ciudad. Sin las multitudes del verano pudimos perdernos por los callejones de Dorsoduro sin cruzarnos con ningún grupo con paraguas-banderín. El hotel que reservamos por Real Travel tenía vista al canal — algo que no esperábamos por ese precio.',
+    destinoId: 'venecia',
+  },
+  {
+    id: 'r2', author: 'Carlos Méndez', avatar: 'C', date: '2026-02-20', rating: 4,
+    text: 'Hermosa pero cara. Los descuentos de la Red Travel ayudaron bastante con las comidas. Alle Testiere fue la mejor cena del viaje, aunque hay que reservar con semanas de anticipación.',
+    destinoId: 'venecia',
+  },
+  {
+    id: 'r3', author: 'Lucía Torres', avatar: 'L', date: '2026-01-08', rating: 5,
+    text: 'El paseo en góndola al atardecer con el descuento Real Travel fue el punto alto del viaje. Los canales menores son incomparablemente más bonitos que el Gran Canal lleno de vaporettos.',
+    destinoId: 'venecia',
+  },
+  {
+    id: 'r4', author: 'Andrés Ruiz', avatar: 'A', date: '2026-04-10', rating: 5,
+    text: 'Cusco te obliga a ir despacio y eso es lo mejor que le puede pasar a un viajero. Seguí el consejo de aclimatar dos días antes de ir a Machu Picchu y fue la mejor decisión. San Blas es un barrio que no querés dejar.',
+    destinoId: 'cusco',
+  },
+  {
+    id: 'r5', author: 'Valentina Paz', avatar: 'V', date: '2026-03-28', rating: 5,
+    text: 'Chicha por Gastón Acurio con el descuento Real Travel: rocoto relleno que te cambia la vida. El Mercado de San Pedro a las 7am es pura magia.',
+    destinoId: 'cusco',
+  },
+  {
+    id: 'r6', author: 'Diego Herrera', avatar: 'D', date: '2026-05-02', rating: 4,
+    text: 'Kyoto en otoño es de otro planeta. Fushimi Inari a las 6am, solos con los zorros de piedra. La machiya donde dormimos tenía un baño de hinoki que olía increíble. Único consejo: evitar los buses y moverse en bicicleta.',
+    destinoId: 'kyoto',
+  },
+  {
+    id: 'r7', author: 'Sofía Navarro', avatar: 'S', date: '2026-04-18', rating: 5,
+    text: 'El bosque de bambú de Arashiyama antes de las 8am es una experiencia mística. Kyoto premia a los madrugadores como ninguna otra ciudad.',
+    destinoId: 'kyoto',
+  },
+  {
+    id: 'r8', author: 'Martín Vega', avatar: 'M', date: '2026-02-14', rating: 5,
+    text: 'Patagonia es una escala distinta, literalmente. Cuatro días en El Chaltén, el Fitz Roy apareció limpio solo una mañana y valió toda la espera. No intenten hacer Torres y Chaltén en el mismo viaje si tienen menos de 10 días.',
+    destinoId: 'patagonia',
+  },
+  {
+    id: 'r9', author: 'Camila Rivas', avatar: 'C', date: '2026-01-22', rating: 4,
+    text: 'Marruecos es un viaje sensorial completo. El caos de Marrakech me superó las primeras horas, pero después de aceptar el ritmo, fue maravilloso. La noche en el desierto es imperdible — estrellas como nunca vi.',
+    destinoId: 'marruecos',
+  },
+]
+
+export const reviewsDeDestino = (destinoId: string) => REVIEWS.filter(r => r.destinoId === destinoId)
+
+// ─── Rutas ───────────────────────────────────────────────────────────────────
+
+export interface Ruta {
+  kind: 'ruta'
+  id: string
+  title: string
+  description: string
+  destinoId: string
+  stops: string[]
+  duration: string
+  distance: string
+}
+
+export const RUTAS: Ruta[] = [
+  {
+    kind: 'ruta', id: 'venecia-clasica', title: 'Venecia clásica en 1 día',
+    description: 'El recorrido esencial por los monumentos icónicos de Venecia, terminando con un aperitivo junto al Gran Canal.',
+    destinoId: 'venecia',
+    stops: ['palacio-ducal', 'basilica-san-marcos', 'puente-rialto'],
+    duration: '6–8 horas', distance: '4.2 km',
+  },
+  {
+    kind: 'ruta', id: 'cusco-historico', title: 'Cusco histórico a pie',
+    description: 'Desde la Plaza de Armas hasta Sacsayhuamán, pasando por el barrio artesano de San Blas.',
+    destinoId: 'cusco',
+    stops: ['mercado-san-pedro', 'san-blas', 'sacsayhuaman'],
+    duration: '4–5 horas', distance: '3.8 km',
+  },
+  {
+    kind: 'ruta', id: 'kyoto-templos', title: 'Templos de Kyoto',
+    description: 'Una jornada completa recorriendo los templos imperdibles de la antigua capital japonesa.',
+    destinoId: 'kyoto',
+    stops: ['fushimi-inari', 'kinkaku-ji', 'arashiyama'],
+    duration: '8–10 horas', distance: '18 km (en bus y a pie)',
+  },
+]
+
+export const findRuta = (id: string) => RUTAS.find(r => r.id === id)
 
 // ─── Lookups ──────────────────────────────────────────────────────────────────
 
