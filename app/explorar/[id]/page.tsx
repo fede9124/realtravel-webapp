@@ -279,9 +279,9 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
           >
             Lugares relacionados
           </h2>
-          <div className="grid gap-x-5 gap-y-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
             {related.map(r => (
-              <Card key={r.id} {...r} />
+              <Card key={r.id} {...r} style={{ flex: '1 0 240px', maxWidth: '320px' }} />
             ))}
           </div>
         </section>

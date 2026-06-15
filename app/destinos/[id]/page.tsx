@@ -197,12 +197,9 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
         {lugares.length > 0 && (
           <section aria-labelledby="heading-lugares" className="py-12 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <DestSection id="heading-lugares" eyebrow="Descubre" title="Lugares destacados" count={lugares.length} />
-            <div
-              className="grid gap-x-6 gap-y-10"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}
-            >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
               {lugares.map((lugar, i) => (
-                <Card key={lugar.id} {...lugar} revealDelay={i * 70} />
+                <Card key={lugar.id} {...lugar} revealDelay={i * 70} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
               ))}
             </div>
           </section>
@@ -212,12 +209,9 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
         {gastronomia.length > 0 && (
           <section aria-labelledby="heading-gastro" className="py-12 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <DestSection id="heading-gastro" eyebrow="Come y bebe" title="Gastronomía" count={gastronomia.length} />
-            <div
-              className="grid gap-x-6 gap-y-10"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}
-            >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
               {gastronomia.map((place, i) => (
-                <Card key={place.id} {...place} revealDelay={i * 70} href={`/red-travel/${place.id}`} />
+                <Card key={place.id} {...place} revealDelay={i * 70} href={`/red-travel/${place.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
               ))}
             </div>
           </section>
@@ -227,12 +221,9 @@ export default function DestinoPage({ params }: { params: Promise<{ id: string }
         {beneficios.length > 0 && (
           <section aria-labelledby="heading-red" className="py-12 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <DestSection id="heading-red" eyebrow="Beneficios exclusivos" title="Red Travel" count={beneficios.length} />
-            <div
-              className="grid gap-x-6 gap-y-10"
-              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}
-            >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
               {beneficios.map((place, i) => (
-                <Card key={place.id} {...place} revealDelay={i * 70} href={`/red-travel/${place.id}`} />
+                <Card key={place.id} {...place} revealDelay={i * 70} href={`/red-travel/${place.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
               ))}
             </div>
           </section>

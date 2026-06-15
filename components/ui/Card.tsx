@@ -18,6 +18,7 @@ interface CardProps {
   onFavoriteToggle?: () => void
   href?: string
   className?: string
+  style?: React.CSSProperties
   revealDelay?: number
 }
 
@@ -38,6 +39,7 @@ export function Card({
   onFavoriteToggle,
   href,
   className = '',
+  style,
   revealDelay = 0,
 }: CardProps) {
   const cardHref = href ?? `/explorar/${id}`
@@ -45,7 +47,7 @@ export function Card({
   const [imgError, setImgError] = useState(false)
 
   return (
-    <article className={`reveal group relative ${className}`} data-delay={revealDelay}>
+    <article className={`reveal group relative ${className}`} style={style} data-delay={revealDelay}>
 
       {/* Imagen — morfea hacia el hero del detalle vía View Transition */}
       <TransitionLink href={cardHref} aria-label={`Ver ${title}`} className="block cursor-pointer">

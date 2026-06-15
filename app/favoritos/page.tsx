@@ -28,6 +28,8 @@ export default function FavoritosPage() {
 
   const itemsFor = (kind: string) => savedItems.filter(item => item.kind === kind)
 
+  const savedRutas = RUTAS.filter(r => favorites.has(r.id))
+
   return (
     <div ref={revealRef} className="px-5 sm:px-8 lg:px-12 pt-14 pb-24 w-full">
       <div className="mb-6">
@@ -54,7 +56,7 @@ export default function FavoritosPage() {
       >
         {TABS.map(tab => {
           const isActive = activeTab === tab.id
-          const count = tab.kind === 'ruta' ? RUTAS.length : itemsFor(tab.kind).length
+          const count = tab.kind === 'ruta' ? savedRutas.length : itemsFor(tab.kind).length
           return (
             <button
               key={tab.id}
@@ -95,7 +97,7 @@ export default function FavoritosPage() {
               aria-label="Rutas sugeridas"
               hidden={activeTab !== tab.id}
             >
-              <RutasList />
+              <RutasList rutas={savedRutas} favorites={favorites} toggleFavorite={toggleFavorite} />
             </div>
           )
         }
@@ -111,7 +113,7 @@ export default function FavoritosPage() {
             {items.length === 0 ? (
               <EmptyState label={tab.label} />
             ) : (
-              <div className="grid gap-x-6 gap-y-10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
                 {items.map((item, i) => (
                   <Card
                     key={item.id}
@@ -120,6 +122,7 @@ export default function FavoritosPage() {
                     revealDelay={i * 60}
                     isFavorite={favorites.has(item.id)}
                     onFavoriteToggle={() => toggleFavorite(item.id)}
+                    style={{ flex: '1 0 280px', maxWidth: '360px' }}
                   />
                 ))}
               </div>
@@ -131,11 +134,22 @@ export default function FavoritosPage() {
   )
 }
 
-function RutasList() {
+interface RutasListProps {
+  rutas: typeof RUTAS
+  favorites: Set<string>
+  toggleFavorite: (id: string) => void
+}
+
+function RutasList({ rutas, favorites, toggleFavorite }: RutasListProps) {
   const router = useRouter()
+
+  if (rutas.length === 0) {
+    return <EmptyState label="Rutas" />
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      {RUTAS.map(ruta => {
+      {rutas.map(ruta => {
         const destino = findDest(ruta.destinoId)
         const stops = ruta.stops.map(findLugar).filter(Boolean)
         return (
@@ -163,11 +177,21 @@ function RutasList() {
                   {ruta.title}
                 </h3>
               </div>
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'var(--color-crimson-light)' }}
-              >
-                <Path size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); toggleFavorite(ruta.id) }}
+                  aria-label="Quitar de favoritos"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: 'var(--color-crimson)' }}
+                >
+                  <BookmarkSimple size={18} weight="fill" aria-hidden="true" />
+                </button>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: 'var(--color-crimson-light)' }}
+                >
+                  <Path size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                </div>
               </div>
             </div>
             <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>

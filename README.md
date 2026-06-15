@@ -36,7 +36,7 @@ npm run dev
 # → http://localhost:3000
 ```
 
-> **Nota sobre dependencias**: antes de instalar paquetes nuevos, verificar que tengan al menos 1 día de antigüedad. Revisar el ecosistema instalado actualmente para no romper otros proyectos.
+> **Nota sobre dependencias**: antes de instalar paquetes nuevos, verificar que tengan al menos 1 día de antigüedad. Ver `CLAUDE.md` para restricciones completas.
 
 ---
 
@@ -50,26 +50,30 @@ realtravel-webapp/
 │   ├── not-found.tsx           # Página 404 personalizada
 │   ├── globals.css             # Variables CSS, capas de Tailwind
 │   ├── explorar/
-│   │   ├── page.tsx            # Listado de Lugares, Destinos y Rutas
+│   │   ├── page.tsx            # Preview de 1 fila por sección + carousel hero
 │   │   └── [id]/page.tsx       # Detalle de lugar (mapa + reseñas)
+│   ├── lugares/
+│   │   └── page.tsx            # Listado completo de lugares con filtros
 │   ├── destinos/
+│   │   ├── page.tsx            # Listado completo de destinos con filtros
 │   │   └── [id]/page.tsx       # Detalle de destino
 │   ├── rutas/
+│   │   ├── page.tsx            # Listado completo de rutas con filtros
 │   │   └── [id]/page.tsx       # Detalle de ruta (sidebar + mapa de ruta)
-│   ├── mapa/page.tsx           # Mapa global con todos los lugares
+│   ├── mapa/page.tsx           # Mapa global con marcadores individuales y filtro por viewport
 │   ├── favoritos/page.tsx      # Colección guardada (localStorage)
 │   ├── red-travel/
 │   │   ├── page.tsx            # Listado de comercios locales
-│   │   └── [id]/page.tsx       # Detalle de comercio
+│   │   └── [id]/page.tsx       # Detalle de comercio (con rutas vinculadas)
 │   ├── perfil/page.tsx         # Perfil del viajero
 │   └── offline/page.tsx        # Fallback sin conexión (PWA)
 │
 ├── components/
 │   ├── layout/
 │   │   ├── AppShell.tsx        # Wrapper principal con sidebar
-│   │   └── SideNav.tsx         # Navegación lateral desktop/mobile
+│   │   └── SideNav.tsx         # Navegación lateral desktop/mobile con subitems
 │   ├── map/
-│   │   ├── MapView.tsx         # Mapa global (streets-v12, Mapbox)
+│   │   ├── MapView.tsx         # Mapa global (marcadores HTML individuales, geolocalización)
 │   │   ├── RouteMapView.tsx    # Mapa de ruta (línea + marcadores numerados)
 │   │   └── PinMapView.tsx      # Mapa embed en detalle de lugar (light-v11)
 │   ├── ui/
@@ -77,7 +81,7 @@ realtravel-webapp/
 │   │   ├── Accordion.tsx       # Acordeón para reseñas y detalles
 │   │   ├── ChipFilter.tsx      # Chips de filtro por categoría/mood
 │   │   ├── SearchBar.tsx       # Barra de búsqueda de texto
-│   │   └── TransitionLink.tsx  # Link con animación de transición
+│   │   └── TransitionLink.tsx  # Link con View Transition síncrona
 │   └── pwa/
 │       └── PwaRegister.tsx     # Registro del service worker
 │
@@ -102,23 +106,34 @@ Todo el contenido es hardcodeado — no hay base de datos ni API. El archivo exp
 
 | Export | Tipo | Descripción |
 |---|---|---|
-| `LUGARES` | `Lugar[]` | Puntos de interés turístico (13 items) |
-| `DESTINOS` | `Destino[]` | Ciudades/regiones destino |
-| `COMERCIOS` | `Comercio[]` | Comercios locales con beneficios |
-| `RUTAS` | `Ruta[]` | Rutas temáticas (3 items: Venecia, Cusco, Kyoto) |
+| `LUGARES` | `Lugar[]` | 97 puntos de interés turístico con coordenadas |
+| `DESTINOS` | `Destino[]` | 10 ciudades/regiones destino |
+| `COMERCIOS` | `Comercio[]` | 25 comercios locales (incluye agencias y tour operadores) |
+| `RUTAS` | `Ruta[]` | 12 rutas temáticas con paradas vinculadas a LUGARES |
 | `findLugar(id)` | función | Busca un lugar por ID |
 | `findDestino(id)` | función | Busca un destino por ID |
+| `findComercio(id)` | función | Busca un comercio por ID |
 | `findRuta(id)` | función | Busca una ruta por ID |
 | `findAny(id)` | función | Busca en todos los tipos |
 | `hrefFor(item)` | función | Genera la URL de navegación para cualquier item |
+| `comerciosConRuta(rutaId)` | función | Filtra comercios que tienen una ruta vinculada |
 
-### IDs de rutas disponibles
+### Rutas disponibles
 
-| ID | Título |
-|---|---|
-| `venecia-clasica` | Venecia clásica en 1 día |
-| `cusco-historico` | Cusco histórico a pie |
-| `kyoto-templos` | Templos de Kyoto |
+| ID | Título | Destino |
+|---|---|---|
+| `venecia-clasica` | Venecia clásica en 1 día | Venecia |
+| `cusco-historico` | Cusco histórico a pie | Cusco |
+| `kyoto-templos` | Templos de Kyoto | Kyoto |
+| `bangkok-sagrado` | Bangkok sagrado | Bangkok |
+| `roma-antigua` | Roma antigua | Roma |
+| `amsterdam-canales` | Amsterdam por los canales | Amsterdam |
+| `lisboa-miradores` | Lisboa de mirador en mirador | Lisboa |
+| `singapur-futurista` | Singapur futurista | Singapur |
+| `venecia-islas` | Las islas de Venecia | Venecia |
+| `inca-valle-sagrado` | El Valle Sagrado de los Incas | Cusco |
+| `kyoto-zen` | Kyoto zen y jardines | Kyoto |
+| `roma-barroca` | Roma barroca | Roma |
 
 ---
 
@@ -128,26 +143,41 @@ Todos los componentes de mapa usan `dynamic()` con `ssr: false` para evitar erro
 
 | Componente | Estilo Mapbox | Uso |
 |---|---|---|
-| `MapView` | `streets-v12` | Mapa global `/mapa` — todos los lugares |
+| `MapView` | `streets-v12` | Mapa global `/mapa` — marcadores individuales + geolocalización |
 | `RouteMapView` | `light-v11` | Rutas — línea GeoJSON + marcadores numerados |
 | `PinMapView` | `light-v11` | Embed en detalle de lugar |
 
 **Token**: `NEXT_PUBLIC_MAPBOX_TOKEN` en `.env.local`
 
+`MapView` usa `mapboxgl.Marker` HTML para todos los puntos — sin GeoJSON ni clustering. Los puntos de lugar aparecen a partir de zoom 6; los pins de destino (foto circular + punta triangular) se muestran solo hasta zoom 9. El panel lateral filtra la lista según el viewport actual (`onBoundsChange` callback en `moveend`). Al abrir, vuela a la ubicación del usuario si se concede el permiso de geolocalización. Los labels de POI y subdivisiones de ciudad están ocultos para reducir ruido visual.
+
 ### Marcadores — patrón anti-drift
 
-Los marcadores de Mapbox usan una estructura de dos elementos para evitar que el transform de escala en hover sobreescriba el `transform: translate(Xpx, Ypx)` que Mapbox calcula internamente:
+Los marcadores de Mapbox usan una estructura de dos elementos para evitar que el transform de escala en hover sobreescriba el `transform: translate(Xpx, Ypx)` interno:
 
 ```
-el (outer, 48px) ← Mapbox ancla aquí, NO aplicar position:relative ni transform
-└── inner (32px, círculo visual) ← aquí van scale y cambios de color
+el (outer) ← Mapbox ancla aquí, NO aplicar position:relative ni transform
+└── inner (círculo o cabeza del pin) ← aquí van scale y cambios de color
+```
+
+---
+
+## Navegación lateral (SideNav)
+
+**Explorar** tiene subitems colapsables que se expanden automáticamente cuando la ruta activa pertenece al grupo:
+
+```
+Explorar (activo en: /explorar, /lugares, /destinos, /rutas)
+├── Lugares   → /lugares
+├── Destinos  → /destinos
+└── Rutas     → /rutas
 ```
 
 ---
 
 ## Sistema de favoritos
 
-`useFavorites` persiste en `localStorage` bajo la clave `rt-favorites`. Acepta IDs de cualquier tipo (lugar, destino, comercio). Los favoritos se muestran en `/favoritos` con tabs por categoría.
+`useFavorites` persiste en `localStorage` bajo la clave `rt-favorites`. Acepta IDs de cualquier tipo (lugar, destino, comercio). Los favoritos se muestran en `/favoritos` con tabs separados por tipo.
 
 ---
 
@@ -167,14 +197,16 @@ Tailwind v4 con `@tailwindcss/postcss`. Todas las utilidades custom y resets van
 **Variables CSS principales** (definidas en `globals.css`):
 
 ```css
---color-crimson: #c41230
---color-surface: #faf9f6
---color-card: #ffffff
---color-text-primary: #1a1a1a
---color-text-muted: #6b7280
---color-border: #e5e0d8
+--color-crimson:       #c41230
+--color-crimson-light: rgba(196,18,48,0.08)
+--color-surface:       #faf9f6
+--color-card:          #ffffff
+--color-text-primary:  #1a1a1a
+--color-text-muted:    #6b7280
+--color-border:        #e5e0d8
 --font-family-display: Fraunces
 --font-family-heading: DM Sans
+--font-family-body:    DM Sans
 ```
 
 ---
@@ -194,4 +226,5 @@ npm run start    # Servidor de producción
 - **No mockar imágenes**: las URLs de Unsplash están hardcodeadas en `lib/data.ts`. Si una imagen da 404, reemplazar el photo ID directamente en ese archivo.
 - **No hay API routes**: el proyecto es completamente estático desde el punto de vista del servidor.
 - **Turbopack obligatorio**: el proyecto usa `next dev` (Turbopack por defecto en Next 16). No cambiar a webpack.
+- **IDs únicos**: verificar siempre antes de agregar `Lugar` que el ID no exista ya — especialmente al copiar entradas de otras ciudades con nombres similares.
 - **Vulnerabilidades npm**: hay 2 vulnerabilidades moderadas en `postcss` interno de Next.js. El "fix" automático bajaría Next a v9 (breaking). Ignorar hasta que Next.js publique un parche.

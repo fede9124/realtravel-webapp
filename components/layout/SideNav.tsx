@@ -1,18 +1,38 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Compass, MapTrifold, Globe, Heart,
-  AirplaneTilt, CaretLeft, CaretRight, X,
+  CaretLeft, CaretRight, X,
+  MapPin, Buildings, Path, CaretDown,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 
-const NAV_ITEMS: Array<{ href: string; label: string; Icon: Icon }> = [
-  { href: '/explorar',   label: 'Explorar',    Icon: Compass     },
-  { href: '/mapa',       label: 'Mapa',         Icon: MapTrifold  },
-  { href: '/red-travel', label: 'Red Travel',   Icon: Globe       },
-  { href: '/favoritos',  label: 'Favoritos',    Icon: Heart       },
+interface SubItem { href: string; label: string; Icon: Icon }
+
+interface NavItem {
+  href: string
+  label: string
+  Icon: Icon
+  subitems?: SubItem[]
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    href: '/explorar',
+    label: 'Explorar',
+    Icon: Compass,
+    subitems: [
+      { href: '/lugares',  label: 'Lugares',  Icon: MapPin    },
+      { href: '/destinos', label: 'Destinos', Icon: Buildings },
+      { href: '/rutas',    label: 'Rutas',    Icon: Path      },
+    ],
+  },
+  { href: '/mapa',       label: 'Mapa',       Icon: MapTrifold },
+  { href: '/red-travel', label: 'Red Travel', Icon: Globe      },
+  { href: '/favoritos',  label: 'Favoritos',  Icon: Heart      },
 ]
 
 interface SideNavProps {
@@ -55,10 +75,16 @@ function CollapsibleLabel({
 
 export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClose }: SideNavProps) {
   const pathname = usePathname()
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   const isCollapsed = isMobile ? false : collapsed
   const sidebarWidth = isMobile ? 240 : (collapsed ? 64 : 240)
+
+  // An item is "active" if the current path starts with its href
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
+  // Explorar parent is active if we're in explorar, lugares, destinos or rutas
+  const explorarActive = isActive('/explorar') || isActive('/lugares') || isActive('/destinos') || isActive('/rutas')
+  const explorarExpanded = explorarActive && !isCollapsed
 
   const navItemStyle = (active: boolean): React.CSSProperties => ({
     display: 'flex',
@@ -73,6 +99,19 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
     position: 'relative',
     background: active ? 'var(--color-crimson-light)' : 'transparent',
     color: active ? 'var(--color-crimson)' : 'var(--color-text-muted)',
+  })
+
+  const subItemStyle = (active: boolean): React.CSSProperties => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '8px 10px 8px 14px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    background: active ? 'rgba(196,18,48,0.08)' : 'transparent',
+    color: active ? 'var(--color-crimson)' : 'var(--color-text-muted)',
+    transition: 'background 150ms ease',
   })
 
   const mobileTransform = isMobile
@@ -122,12 +161,14 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             aria-label="Real Travel — inicio"
             style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none' }}
           >
-            <div
-              className="flex items-center justify-center flex-shrink-0 rounded-xl"
-              style={{ width: '36px', height: '36px', minWidth: '36px', background: 'var(--color-crimson)' }}
-            >
-              <AirplaneTilt size={17} color="white" weight="fill" aria-hidden="true" />
-            </div>
+            <Image
+              src="/logo/RT_roj.png"
+              alt="Real Travel"
+              width={36}
+              height={36}
+              className="flex-shrink-0"
+              style={{ objectFit: 'contain', minWidth: '36px' }}
+            />
             <div style={{ overflow: 'hidden' }}>
               <CollapsibleLabel collapsed={isCollapsed}>
                 <span
@@ -165,46 +206,97 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             transition: `padding 0.3s ${EASE}`,
           }}
         >
-          {NAV_ITEMS.map(({ href, label, Icon }) => {
-            const active = isActive(href)
+          {NAV_ITEMS.map(({ href, label, Icon, subitems }) => {
+            const parentActive = href === '/explorar' ? explorarActive : isActive(href)
+
             return (
-              <Link
-                key={href}
-                href={href}
-                onClick={isMobile ? onMobileClose : undefined}
-                aria-label={label}
-                aria-current={active ? 'page' : undefined}
-                title={isCollapsed ? label : undefined}
-                style={navItemStyle(active)}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'var(--color-surface)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = active ? 'var(--color-crimson-light)' : 'transparent' }}
-              >
-                {active && !isCollapsed && (
-                  <span
-                    className="absolute left-0 rounded-r-full"
-                    style={{
-                      width: '3.5px',
-                      height: '24px',
-                      background: 'var(--color-crimson)',
-                    }}
+              <div key={href}>
+                <Link
+                  href={href}
+                  onClick={isMobile ? onMobileClose : undefined}
+                  aria-label={label}
+                  aria-current={pathname === href || (href === '/explorar' && explorarActive) ? 'page' : undefined}
+                  title={isCollapsed ? label : undefined}
+                  style={navItemStyle(parentActive)}
+                  onMouseEnter={e => { if (!parentActive) e.currentTarget.style.background = 'var(--color-surface)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = parentActive ? 'var(--color-crimson-light)' : 'transparent' }}
+                >
+                  {parentActive && !isCollapsed && (
+                    <span
+                      className="absolute left-0 rounded-r-full"
+                      style={{ width: '3.5px', height: '24px', background: 'var(--color-crimson)' }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Icon
+                    size={20}
+                    weight={parentActive ? 'fill' : 'regular'}
+                    style={{ flexShrink: 0 }}
                     aria-hidden="true"
                   />
-                )}
-                <Icon
-                  size={20}
-                  weight={active ? 'fill' : 'regular'}
-                  style={{ flexShrink: 0 }}
-                  aria-hidden="true"
-                />
-                <CollapsibleLabel collapsed={isCollapsed}>
-                  <span
-                    className="text-sm font-medium"
-                    style={{ fontFamily: 'var(--font-family-body) ' }}
+                  <CollapsibleLabel collapsed={isCollapsed}>
+                    <span className="text-sm font-medium flex-1" style={{ fontFamily: 'var(--font-family-body)' }}>
+                      {label}
+                    </span>
+                  </CollapsibleLabel>
+                  {subitems && !isCollapsed && (
+                    <CollapsibleLabel collapsed={isCollapsed}>
+                      <CaretDown
+                        size={13}
+                        weight="bold"
+                        aria-hidden="true"
+                        style={{
+                          flexShrink: 0,
+                          transform: explorarExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                          marginLeft: 'auto',
+                          opacity: 0.5,
+                        }}
+                      />
+                    </CollapsibleLabel>
+                  )}
+                </Link>
+
+                {/* Subitems */}
+                {subitems && !isCollapsed && (
+                  <div
+                    style={{
+                      maxHeight: explorarExpanded ? '200px' : '0px',
+                      overflow: 'hidden',
+                      transition: `max-height 0.25s ${EASE}`,
+                      marginTop: explorarExpanded ? '2px' : 0,
+                    }}
                   >
-                    {label}
-                  </span>
-                </CollapsibleLabel>
-              </Link>
+                    <div className="flex flex-col gap-0.5 ml-3 pl-3 border-l" style={{ borderColor: 'var(--color-border)' }}>
+                      {subitems.map(sub => {
+                        const subActive = isActive(sub.href)
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={isMobile ? onMobileClose : undefined}
+                            aria-label={sub.label}
+                            aria-current={subActive ? 'page' : undefined}
+                            style={subItemStyle(subActive)}
+                            onMouseEnter={e => { if (!subActive) e.currentTarget.style.background = 'var(--color-surface)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = subActive ? 'rgba(196,18,48,0.08)' : 'transparent' }}
+                          >
+                            <sub.Icon
+                              size={15}
+                              weight={subActive ? 'fill' : 'regular'}
+                              style={{ flexShrink: 0 }}
+                              aria-hidden="true"
+                            />
+                            <span className="text-xs font-medium" style={{ fontFamily: 'var(--font-family-body)' }}>
+                              {sub.label}
+                            </span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
@@ -270,7 +362,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             >
               {collapsed
                 ? <CaretRight size={15} weight="regular" aria-hidden="true" />
-                : <CaretLeft  size={15} weight="regular" aria-hidden="true" style={{ flexShrink: 0 }} />
+                : <CaretLeft  size={15} weight="regular" style={{ flexShrink: 0 }} aria-hidden="true" />
               }
               <CollapsibleLabel collapsed={isCollapsed}>
                 <span className="text-xs font-medium" style={{ fontFamily: 'var(--font-family-body)' }}>

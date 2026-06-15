@@ -41,6 +41,8 @@ export default function RedTravelPage() {
   }, [activeFilter, query])
 
   const withDiscount = filtered.filter(c => c.badge)
+  // Exclude badged items from the main grid when 'todos' is active — they're already shown above
+  const mainFiltered = activeFilter === 'todos' ? filtered.filter(c => !c.badge) : filtered
   const hasActiveFilters = query.trim() !== '' || activeFilter !== 'todos'
 
   const clearFilters = () => {
@@ -131,15 +133,15 @@ export default function RedTravelPage() {
               {withDiscount.length} con beneficio
             </span>
           </div>
-          <div className="grid gap-x-6 gap-y-10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
             {withDiscount.map((c, i) => (
-              <Card key={c.id} {...c} revealDelay={i * 60} href={`/red-travel/${c.id}`} />
+              <Card key={c.id} {...c} revealDelay={i * 60} href={`/red-travel/${c.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
             ))}
           </div>
         </section>
       )}
 
-      {filtered.length > 0 && (
+      {mainFiltered.length > 0 && (
       <section aria-labelledby="heading-comercios">
         <div
           className="reveal flex items-baseline justify-between mb-7 pb-3 border-b"
@@ -165,13 +167,13 @@ export default function RedTravelPage() {
             style={{ color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.08em' }}
           >
             {hasActiveFilters
-              ? `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`
-              : `${filtered.length} en total`}
+              ? `${mainFiltered.length} ${mainFiltered.length === 1 ? 'resultado' : 'resultados'}`
+              : `${mainFiltered.length} en total`}
           </span>
         </div>
-        <div className="grid gap-x-6 gap-y-10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))' }}>
-          {filtered.map((c, i) => (
-            <Card key={c.id} {...c} revealDelay={i * 60} href={`/red-travel/${c.id}`} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+          {mainFiltered.map((c, i) => (
+            <Card key={c.id} {...c} revealDelay={i * 60} href={`/red-travel/${c.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
           ))}
         </div>
       </section>

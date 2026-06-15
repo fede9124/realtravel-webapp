@@ -1,11 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useState, useEffect } from 'react'
-import { Crosshair, Sliders, Star, Church, Tree, ForkKnife, ShoppingBag, Bank, List, X } from '@phosphor-icons/react'
+import { useState, useEffect, useMemo } from 'react'
+import {
+  Crosshair, Star, Church, Tree, ShoppingBag, Bank,
+  List, X, Buildings, Palette, Crown, MapPin,
+} from '@phosphor-icons/react'
 import Link from 'next/link'
 import type { Icon } from '@phosphor-icons/react'
-import { findAny, hrefFor } from '@/lib/data'
+import { LUGARES, DESTINOS, hrefFor } from '@/lib/data'
 
 const MapView = dynamic(() => import('@/components/map/MapView'), {
   ssr: false,
@@ -27,53 +30,145 @@ const MapView = dynamic(() => import('@/components/map/MapView'), {
   ),
 })
 
-type Category = 'Iglesia' | 'Plaza' | 'Restaurante' | 'Tienda' | 'Monumento' | 'Basílica' | 'Palacio'
+// ── Category → icon / color maps ──────────────────────────────────────────────
 
-const CATEGORY_ICONS: Record<Category, Icon> = {
+const CATEGORY_ICONS: Record<string, Icon> = {
   Iglesia: Church,
-  Plaza: Tree,
-  Restaurante: ForkKnife,
-  Tienda: ShoppingBag,
-  Monumento: Bank,
   Basílica: Church,
-  Palacio: Bank,
+  Monasterio: Church,
+  Templo: Star,
+  Santuario: Star,
+  Experiencia: Star,
+  Bosque: Tree,
+  Parque: Tree,
+  Jardín: Tree,
+  Monumento: Bank,
+  Fuente: Bank,
+  Ruinas: Bank,
+  Mercado: ShoppingBag,
+  Palacio: Crown,
+  Castillo: Crown,
+  Rascacielos: Buildings,
+  Museo: Palette,
 }
 
-const CATEGORY_COLORS: Record<Category, string> = {
+const CATEGORY_COLORS: Record<string, string> = {
   Iglesia: '#FDE8D8',
-  Plaza: '#DCFCE7',
-  Restaurante: '#FEF3C7',
-  Tienda: '#EDE9FE',
-  Monumento: '#DBEAFE',
   Basílica: '#FDE8D8',
+  Monasterio: '#FDE8D8',
+  Templo: '#FEF3C7',
+  Santuario: '#FEF3C7',
+  Experiencia: '#FEF3C7',
+  Bosque: '#DCFCE7',
+  Parque: '#DCFCE7',
+  Jardín: '#DCFCE7',
+  Monumento: '#DBEAFE',
+  Fuente: '#DBEAFE',
+  Ruinas: '#F3E8FF',
+  Mercado: '#FFF7ED',
+  Barrio: '#ECFDF5',
+  Plaza: '#ECFDF5',
   Palacio: '#E0E7FF',
+  Castillo: '#E0E7FF',
+  Museo: '#FCE7F3',
+  Rascacielos: '#E0F2FE',
 }
+
+function getCategoryIcon(category: string): Icon {
+  return CATEGORY_ICONS[category] ?? MapPin
+}
+
+function getCategoryColor(category: string): string {
+  return CATEGORY_COLORS[category] ?? '#EDE9E4'
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface MapDestino {
+  id: string
+  title: string
+  image: string
+  lat: number
+  lng: number
+}
+
+// ── Destino coordinates (kept here to avoid touching Destino interface) ───────
+
+const DESTINO_COORDS: Record<string, { lat: number; lng: number }> = {
+  venecia:   { lat: 45.4408,  lng: 12.3155 },
+  cusco:     { lat: -13.5319, lng: -71.9675 },
+  patagonia: { lat: -50.9547, lng: -73.4162 },
+  marruecos: { lat: 31.6295,  lng: -7.9811 },
+  kyoto:     { lat: 35.0116,  lng: 135.7681 },
+  bangkok:   { lat: 13.7563,  lng: 100.5018 },
+  roma:      { lat: 41.9028,  lng: 12.4964 },
+  amsterdam: { lat: 52.3676,  lng: 4.9041 },
+  lisboa:    { lat: 38.7223,  lng: -9.1393 },
+  singapur:  { lat: 1.3521,   lng: 103.8198 },
+  madrid:    { lat: 40.4168,  lng: -3.7038 },
+}
+
+const ALL_MAP_DESTINOS: MapDestino[] = DESTINOS
+  .filter(d => DESTINO_COORDS[d.id] !== undefined)
+  .map(d => ({
+    id: d.id,
+    title: d.title,
+    image: d.image,
+    lat: DESTINO_COORDS[d.id].lat,
+    lng: DESTINO_COORDS[d.id].lng,
+  }))
+
+// ── Haversine distance (km) ───────────────────────────────────────────────────
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+// ── Derived places from LUGARES with coordinates ─────────────────────────────
 
 export interface MapPlace {
-  id: string; category: Category; title: string; location: string; distance: string; rating: number
-  lat: number; lng: number; emoji: string; color: string
+  id: string
+  category: string
+  title: string
+  location: string
+  rating: number
+  lat: number
+  lng: number
 }
 
-const PLACES: MapPlace[] = [
-  { id: 'santa-gemma', category: 'Iglesia', title: 'Parroquia de Santa Gemma', location: 'España', distance: '0.34 km', rating: 4.8, lat: 40.4168, lng: -3.7038, emoji: '⛪', color: '#E8D5C4' },
-  { id: 'plaza-mayor', category: 'Plaza', title: 'Plaza Mayor de Madrid', location: 'España', distance: '1.2 km', rating: 4.6, lat: 40.4153, lng: -3.7022, emoji: '🏛️', color: '#C8E6C9' },
-  { id: 'rincon', category: 'Restaurante', title: 'Restaurante El Rincón', location: 'Madrid', distance: '0.5 km', rating: 4.5, lat: 40.4142, lng: -3.7065, emoji: '🍽️', color: '#FFCCBC' },
-  { id: 'boutique', category: 'Tienda', title: 'Boutique Local Moda', location: 'Barcelona', distance: '0.8 km', rating: 4.3, lat: 40.4178, lng: -3.7010, emoji: '🛍️', color: '#E1BEE7' },
-  { id: 'arco', category: 'Monumento', title: 'Arco del Triunfo', location: 'España', distance: '1.5 km', rating: 4.7, lat: 40.4190, lng: -3.7055, emoji: '🗿', color: '#B3E5FC' },
-  { id: 'sagrada-familia', category: 'Monumento', title: 'Sagrada Família', location: 'España', distance: '2.1 km', rating: 4.9, lat: 40.4130, lng: -3.7080, emoji: '🗿', color: '#B3E5FC' },
-  { id: 'alhambra', category: 'Palacio', title: 'La Alhambra de Granada', location: 'España', distance: '4.5 km', rating: 4.9, lat: 40.4200, lng: -3.7000, emoji: '🏰', color: '#E0E7FF' },
-  { id: 'tapas', category: 'Restaurante', title: 'Bar de Tapas Tradicional', location: 'Sevilla', distance: '0.3 km', rating: 4.4, lat: 40.4160, lng: -3.7050, emoji: '🍽️', color: '#FFCCBC' },
-  { id: 'ceramica', category: 'Tienda', title: 'Taller Cerámica Artesanal', location: 'Toledo', distance: '1.1 km', rating: 4.7, lat: 40.4175, lng: -3.7070, emoji: '🛍️', color: '#E1BEE7' },
-  { id: 'artesania-local', category: 'Tienda', title: 'Mercado de Artesanías', location: 'Valencia', distance: '2.0 km', rating: 4.5, lat: 40.4145, lng: -3.7015, emoji: '🛍️', color: '#E1BEE7' },
-]
+const ALL_PLACES: MapPlace[] = LUGARES
+  .filter((l): l is typeof l & { lat: number; lng: number } =>
+    l.lat !== undefined && l.lng !== undefined
+  )
+  .map(l => ({
+    id: l.id,
+    category: l.category,
+    title: l.title,
+    location: l.location,
+    rating: l.rating,
+    lat: l.lat!,
+    lng: l.lng!,
+  }))
 
-const CATEGORY_FILTERS = ['Todos', 'Iglesia', 'Plaza', 'Restaurante', 'Tienda', 'Monumento', 'Palacio']
+const CATEGORIES = ['Todos', ...Array.from(new Set(ALL_PLACES.map(p => p.category))).sort()]
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function MapaPage() {
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [nearbyMode, setNearbyMode] = useState(false)
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -83,9 +178,51 @@ export default function MapaPage() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  const filtered = activeCategory === 'Todos'
-    ? PLACES
-    : PLACES.filter(p => p.category === activeCategory)
+  function toggleNearby() {
+    if (nearbyMode) { setNearbyMode(false); return }
+    if (userCoords) { setNearbyMode(true); return }
+    setGeoLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setNearbyMode(true)
+        setGeoLoading(false)
+      },
+      () => setGeoLoading(false),
+      { timeout: 8000 }
+    )
+  }
+
+  // All places for the active category — passed to MapView for rendering markers
+  const mapPlaces = useMemo(() =>
+    activeCategory === 'Todos'
+      ? ALL_PLACES
+      : ALL_PLACES.filter(p => p.category === activeCategory)
+  , [activeCategory])
+
+  // List items — filtered by current viewport bounds and optionally sorted by proximity
+  const filtered = useMemo(() => {
+    let list = mapPlaces
+    if (mapBounds) {
+      list = list.filter(p =>
+        p.lat >= mapBounds.south && p.lat <= mapBounds.north &&
+        p.lng >= mapBounds.west && p.lng <= mapBounds.east
+      )
+    }
+    if (nearbyMode && userCoords) {
+      list = [...list].sort(
+        (a, b) =>
+          haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) -
+          haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng)
+      )
+    }
+    return list
+  }, [mapPlaces, mapBounds, nearbyMode, userCoords])
+
+  function handleSelect(id: string) {
+    setSelectedId(prev => (prev === id ? null : id))
+    if (isMobile) setPanelOpen(false)
+  }
 
   const panelContent = (
     <>
@@ -109,13 +246,28 @@ export default function MapaPage() {
           )}
         </div>
         <p className="text-sm mb-3" style={{ color: 'var(--color-text-muted)' }}>
-          {filtered.length} lugares encontrados
+          {filtered.length} lugar{filtered.length !== 1 ? 'es' : ''} en vista
         </p>
 
         <div className="flex gap-2 overflow-x-auto scroll-hide pb-1">
-          {CATEGORY_FILTERS.map(cat => {
+          <button
+            onClick={toggleNearby}
+            aria-pressed={nearbyMode}
+            disabled={geoLoading}
+            className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+            style={{
+              background: nearbyMode ? 'var(--color-crimson)' : 'var(--color-surface)',
+              color: nearbyMode ? 'white' : 'var(--color-crimson)',
+              border: nearbyMode ? 'none' : '1px solid var(--color-crimson)',
+              opacity: geoLoading ? 0.6 : 1,
+            }}
+          >
+            <Crosshair size={12} aria-hidden="true" />
+            {geoLoading ? 'Localizando…' : 'Cerca de mí'}
+          </button>
+          {CATEGORIES.map(cat => {
             const isActive = cat === activeCategory
-            const CatIcon = cat !== 'Todos' ? CATEGORY_ICONS[cat as Category] : null
+            const CatIcon = cat !== 'Todos' ? getCategoryIcon(cat) : null
             return (
               <button
                 key={cat}
@@ -138,14 +290,14 @@ export default function MapaPage() {
 
       <div className="flex-1 overflow-y-auto">
         {filtered.map(place => {
-          const PlaceIcon = CATEGORY_ICONS[place.category]
-          const bgColor = CATEGORY_COLORS[place.category]
+          const PlaceIcon = getCategoryIcon(place.category)
+          const bgColor = getCategoryColor(place.category)
           const isSelected = selectedId === place.id
 
           return (
             <button
               key={place.id}
-              onClick={() => setSelectedId(isSelected ? null : place.id)}
+              onClick={() => handleSelect(place.id)}
               className="w-full text-left px-5 py-[16px] border-b cursor-pointer transition-colors"
               style={{
                 borderColor: 'var(--color-border)',
@@ -181,8 +333,8 @@ export default function MapaPage() {
                       >
                         {place.category}
                       </span>
-                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                        · {place.distance}
+                      <span className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
+                        · {place.location}
                       </span>
                     </div>
                   </div>
@@ -193,7 +345,7 @@ export default function MapaPage() {
                     className="text-xs font-semibold"
                     style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
                   >
-                    {place.rating}
+                    {place.rating.toFixed(1)}
                   </span>
                 </div>
               </div>
@@ -201,7 +353,7 @@ export default function MapaPage() {
               {isSelected && (
                 <div className="mt-3">
                   <Link
-                    href={(() => { const item = findAny(place.id); return item ? hrefFor(item) : '/explorar' })()}
+                    href={`/explorar/${place.id}`}
                     className="block text-center text-xs font-semibold py-2 rounded-lg text-white cursor-pointer transition-opacity hover:opacity-90"
                     style={{ background: 'var(--color-crimson)' }}
                     onClick={e => e.stopPropagation()}
@@ -232,7 +384,13 @@ export default function MapaPage() {
 
       {/* Map */}
       <div className="flex-1 relative">
-        <MapView places={PLACES} selectedId={selectedId} />
+        <MapView
+          places={mapPlaces}
+          destinos={ALL_MAP_DESTINOS}
+          selectedId={selectedId}
+          onSelect={handleSelect}
+          onBoundsChange={setMapBounds}
+        />
 
         {/* Mobile: toggle list button */}
         {isMobile && (
@@ -264,13 +422,6 @@ export default function MapaPage() {
             aria-label="Centrar en mi ubicación"
           >
             <Crosshair size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
-          </button>
-          <button
-            className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95"
-            style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
-            aria-label="Filtrar categorías"
-          >
-            <Sliders size={18} weight="regular" style={{ color: 'var(--color-text-primary)' }} aria-hidden="true" />
           </button>
         </div>
       </div>

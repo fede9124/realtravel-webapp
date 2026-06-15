@@ -5,8 +5,9 @@ import { use, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Path, MapPin, Star, DoorOpen, Timer } from '@phosphor-icons/react'
+import { ArrowLeft, Clock, Path, MapPin, Star, DoorOpen, Timer, BookmarkSimple } from '@phosphor-icons/react'
 import { findRuta, findLugar, findDestino } from '@/lib/data'
+import { useFavorites } from '@/hooks/useFavorites'
 
 const RouteMapView = dynamic(() => import('@/components/map/RouteMapView'), {
   ssr: false,
@@ -28,6 +29,7 @@ const RouteMapView = dynamic(() => import('@/components/map/RouteMapView'), {
 export default function RutaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+  const { favorites, toggleFavorite } = useFavorites()
 
   const ruta = findRuta(id)
   if (!ruta) notFound()
@@ -49,14 +51,24 @@ export default function RutaPage({ params }: { params: Promise<{ id: string }> }
       >
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b flex-shrink-0" style={{ borderColor: 'var(--color-border)' }}>
-          <Link
-            href="/explorar"
-            className="inline-flex items-center gap-1.5 text-xs font-medium mb-5 transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)' }}
-          >
-            <ArrowLeft size={13} aria-hidden="true" />
-            Explorar
-          </Link>
+          <div className="flex items-center justify-between mb-5">
+            <Link
+              href="/explorar"
+              className="inline-flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-70"
+              style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)' }}
+            >
+              <ArrowLeft size={13} aria-hidden="true" />
+              Explorar
+            </Link>
+            <button
+              onClick={() => toggleFavorite(ruta.id)}
+              aria-label={favorites.has(ruta.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: favorites.has(ruta.id) ? 'var(--color-crimson)' : 'var(--color-text-muted)' }}
+            >
+              <BookmarkSimple size={18} weight={favorites.has(ruta.id) ? 'fill' : 'regular'} aria-hidden="true" />
+            </button>
+          </div>
 
           {destino && (
             <p
