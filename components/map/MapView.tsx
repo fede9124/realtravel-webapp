@@ -7,10 +7,10 @@ import type { MapPlace, MapDestino } from '@/app/mapa/page'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Place markers visible from this zoom level onwards (city-region level)
-const PLACE_MIN_ZOOM = 6
-// Destino pin markers hidden above this zoom (individual places dominate at city level)
-const DESTINO_MAX_ZOOM = 9
+// Place markers visible from this zoom level onwards (city level)
+const PLACE_MIN_ZOOM = 7.5
+// Destino pin markers hidden above this zoom (individual places dominate)
+const DESTINO_MAX_ZOOM = 6.5
 
 // ── Place marker — simple crimson dot ────────────────────────────────────────
 
@@ -45,14 +45,14 @@ function createPlaceMarkerEl(onSelect: () => void): HTMLElement {
 function createDestinoPinEl(destino: MapDestino): HTMLElement {
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = 'width:52px;height:60px;display:flex;flex-direction:column;align-items:center;cursor:pointer;'
+  el.style.cssText = 'width:44px;height:52px;display:flex;flex-direction:column;align-items:center;cursor:pointer;'
 
   const circle = document.createElement('div')
   circle.style.cssText = `
-    width:46px;height:46px;border-radius:50%;
+    width:38px;height:38px;border-radius:50%;
     background:url('${destino.image}') center/cover;
-    border:3px solid #c41230;
-    box-shadow:0 3px 12px rgba(0,0,0,0.3);
+    border:2.5px solid #c41230;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
     flex-shrink:0;
     transition:transform 0.15s ease,box-shadow 0.15s ease;
   `
@@ -60,10 +60,10 @@ function createDestinoPinEl(destino: MapDestino): HTMLElement {
   const tip = document.createElement('div')
   tip.style.cssText = `
     width:0;height:0;
-    border-left:10px solid transparent;
-    border-right:10px solid transparent;
-    border-top:14px solid #c41230;
-    margin-top:-2px;
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-top:11px solid #c41230;
+    margin-top:-1px;
     pointer-events:none;
   `
 

@@ -173,7 +173,7 @@ export default function RedTravelPage() {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
           {mainFiltered.map((c, i) => (
-            <Card key={c.id} {...c} revealDelay={i * 60} href={`/red-travel/${c.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
+            <Card key={c.id} {...c} revealDelay={i * 60} priority={i === 0} href={`/red-travel/${c.id}`} style={{ flex: '1 0 280px', maxWidth: '360px' }} />
           ))}
         </div>
       </section>

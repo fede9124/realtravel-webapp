@@ -167,7 +167,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
               width={36}
               height={36}
               className="flex-shrink-0"
-              style={{ objectFit: 'contain', minWidth: '36px' }}
+              style={{ objectFit: 'contain' }}
             />
             <div style={{ overflow: 'hidden' }}>
               <CollapsibleLabel collapsed={isCollapsed}>

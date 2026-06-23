@@ -123,6 +123,7 @@ export default function DestinosPage() {
                 {...destino}
                 href={`/destinos/${destino.id}`}
                 revealDelay={i * 40}
+                priority={i === 0}
                 isFavorite={favorites.has(destino.id)}
                 onFavoriteToggle={() => toggleFavorite(destino.id)}
                 style={{ flex: '1 0 280px', maxWidth: '360px' }}

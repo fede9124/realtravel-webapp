@@ -404,6 +404,7 @@ export default function ExplorarPage() {
                 key={lugar.id}
                 {...lugar}
                 revealDelay={i * 60}
+                priority={i === 0}
                 isFavorite={favorites.has(lugar.id)}
                 onFavoriteToggle={() => toggleFavorite(lugar.id)}
                 style={{ flex: '0 0 280px' }}

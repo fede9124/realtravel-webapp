@@ -20,6 +20,7 @@ interface CardProps {
   className?: string
   style?: React.CSSProperties
   revealDelay?: number
+  priority?: boolean
 }
 
 /**
@@ -41,6 +42,7 @@ export function Card({
   className = '',
   style,
   revealDelay = 0,
+  priority = false,
 }: CardProps) {
   const cardHref = href ?? `/explorar/${id}`
   const [imgLoaded, setImgLoaded] = useState(false)
@@ -78,6 +80,7 @@ export function Card({
               src={image}
               alt={title}
               fill
+              priority={priority}
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
               style={{ opacity: imgLoaded ? 1 : 0, transition: 'opacity 0.3s ease, transform 0.5s ease-out' }}
               sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"

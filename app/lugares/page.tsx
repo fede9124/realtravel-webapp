@@ -198,6 +198,7 @@ export default function LugaresPage() {
                 key={lugar.id}
                 {...lugar}
                 revealDelay={i * 40}
+                priority={i === 0}
                 isFavorite={favorites.has(lugar.id)}
                 onFavoriteToggle={() => toggleFavorite(lugar.id)}
                 style={{ flex: '1 0 280px', maxWidth: '360px' }}

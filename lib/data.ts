@@ -193,7 +193,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'basilica-santa-maria-gloriosa',
-    image: 'https://images.unsplash.com/photo-1445267768554-6175e2763ae2?w=600',
+    image: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=600',
     category: 'Basílica',
     title: 'Basílica di Santa Maria Gloriosa dei Frari',
     location: 'Venecia, Italia',
@@ -209,7 +209,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'museo-correr',
-    image: 'https://images.unsplash.com/photo-1554797589-aced29409e3d?w=600',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600',
     category: 'Museo',
     title: 'Museo Correr',
     location: 'Venecia, Italia',
@@ -241,7 +241,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'ghetto-veneziano',
-    image: 'https://images.unsplash.com/photo-1495583346356-c31d5c7eef29?w=600',
+    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
     category: 'Barrio',
     title: 'Ghetto Veneziano',
     location: 'Venecia, Italia',
@@ -306,7 +306,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'plaza-de-armas-cusco',
-    image: 'https://images.unsplash.com/photo-1494783367193-149034c05e41?w=600',
+    image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
     category: 'Plaza',
     title: 'Plaza de Armas',
     location: 'Cusco, Perú',
@@ -338,7 +338,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'pizac',
-    image: 'https://images.unsplash.com/photo-1580854182143-27fc7d45f127?w=600',
+    image: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=600',
     category: 'Ruinas',
     title: 'Pisac',
     location: 'Cusco, Perú',
@@ -354,7 +354,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'ollantaytambo',
-    image: 'https://images.unsplash.com/photo-1512100356356-11c3cabaa89d?w=600',
+    image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600',
     category: 'Ruinas',
     title: 'Ollantaytambo',
     location: 'Cusco, Perú',
@@ -419,7 +419,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'ginkaku-ji',
-    image: 'https://images.unsplash.com/photo-1522383607803-19a905d883e0?w=600',
+    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600',
     category: 'Templo',
     title: 'Ginkaku-ji — Pabellón de Plata',
     location: 'Kyoto, Japón',
@@ -451,7 +451,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'templo-fushimi-momiji-park',
-    image: 'https://images.unsplash.com/photo-1470252649378-9c29740ff023?w=600',
+    image: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?w=600',
     category: 'Parque',
     title: 'Fushimi Momiji Park',
     location: 'Kyoto, Japón',
@@ -597,7 +597,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'vaticano-basilica',
-    image: 'https://images.unsplash.com/photo-1549144611-11fc6d1be98f?w=600',
+    image: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=600',
     category: 'Basílica',
     title: 'Basílica de San Pedro',
     location: 'Roma, Italia',
@@ -629,7 +629,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'fontana-di-trevi',
-    image: 'https://images.unsplash.com/photo-1527431342792-f154aac5b9a8?w=600',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600',
     category: 'Fuente',
     title: 'Fontana di Trevi',
     location: 'Roma, Italia',
@@ -645,7 +645,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'foro-romano',
-    image: 'https://images.unsplash.com/photo-1552832860-cfb67165eaf0?w=600',
+    image: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=600',
     category: 'Ruinas',
     title: 'Foro Romano',
     location: 'Roma, Italia',
@@ -678,7 +678,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'museo-ana-frank',
-    image: 'https://images.unsplash.com/photo-1551256221-ccff686ebc82?w=600',
+    image: 'https://images.unsplash.com/photo-1558618047-3c8d4d7f7e1b?w=600',
     category: 'Museo',
     title: 'Casa de Ana Frank',
     location: 'Ámsterdam, Países Bajos',
@@ -694,7 +694,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'canal-tour-amsterdam',
-    image: 'https://images.unsplash.com/photo-1470252649378-9c29740ff023?w=600',
+    image: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?w=600',
     category: 'Experiencia',
     title: 'Paseo en Bote por los Canales',
     location: 'Ámsterdam, Países Bajos',
@@ -710,7 +710,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'rijksmuseum',
-    image: 'https://images.unsplash.com/photo-1575321243769-3aa5f7a89b5a?w=600',
+    image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=600',
     category: 'Museo',
     title: 'Rijksmuseum',
     location: 'Ámsterdam, Países Bajos',
@@ -743,7 +743,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'torre-belem',
-    image: 'https://images.unsplash.com/photo-1516729009645-f6becf6d0e9f?w=600',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600',
     category: 'Monumento',
     title: 'Torre de Belém',
     location: 'Lisboa, Portugal',
@@ -759,7 +759,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'monasteri-jeronimos',
-    image: 'https://images.unsplash.com/photo-1473093295203-cad00df16e50?w=600',
+    image: 'https://images.unsplash.com/photo-1464817739973-0128fe77aaa1?w=600',
     category: 'Monasterio',
     title: 'Monasterio de los Jerónimos',
     location: 'Lisboa, Portugal',
@@ -792,7 +792,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'marina-bay-sands',
-    image: 'https://images.unsplash.com/photo-1552776489-4594aeaa5ce1?w=600',
+    image: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600',
     category: 'Rascacielos',
     title: 'Marina Bay Sands',
     location: 'Singapur',
@@ -808,7 +808,7 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar',
     id: 'gardens-bay',
-    image: 'https://images.unsplash.com/photo-1508672019048-2b374b963c05?w=600',
+    image: 'https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?w=600',
     category: 'Jardín',
     title: 'Gardens by the Bay',
     location: 'Singapur',
@@ -834,7 +834,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'plaza-espana-sevilla',
-    image: 'https://images.unsplash.com/photo-1571994668879-aa7e4c7f73ae?w=600',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
     category: 'Plaza', title: 'Plaza de España', location: 'Sevilla, España',
     rating: 4.9, moods: ['fotografía', 'historia', 'relajo'],
     description: 'La plaza más fotogénica de España: semicírculo de ladrillo rojo, cerámica de las 49 provincias y un canal de barcas de remos. Construida para la Exposición Iberoamericana de 1929 y usada como locación de Star Wars y Lawrence de Arabia.',
@@ -843,7 +843,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'alcazar-sevilla',
-    image: 'https://images.unsplash.com/photo-1601935709226-a3b8a1aa2a0a?w=600',
+    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
     category: 'Palacio', title: 'Real Alcázar de Sevilla', location: 'Sevilla, España',
     rating: 4.8, moods: ['historia', 'cultura', 'fotografía'],
     description: 'Palacio real en uso continuo más antiguo de Europa. Los jardines mudéjares y renacentistas son un laberinto de naranjos, fuentes y pabellones. Escenario de Juego de Tronos y residencia ocasional de la familia real española.',
@@ -888,7 +888,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'catedral-santiago',
-    image: 'https://images.unsplash.com/photo-1558618047-f4f7e290f5a1?w=600',
+    image: 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=600',
     category: 'Basílica', title: 'Catedral de Santiago de Compostela', location: 'Galicia, España',
     rating: 4.9, moods: ['historia', 'cultura', 'relajo'],
     description: 'Meta del Camino de Santiago y uno de los grandes santuarios medievales de la cristiandad. El Pórtico de la Gloria del Maestro Mateo es un hito del arte románico. La plaza del Obradoiro es el escenario de millones de llegadas cargadas de emoción.',
@@ -917,7 +917,7 @@ export const LUGARES: Lugar[] = [
   // ── Venecia — 5 nuevos ──────────────────────────────────────────────────────
   {
     kind: 'lugar', id: 'murano-isla',
-    image: 'https://images.unsplash.com/photo-1548699820-52e5d6a47573?w=600',
+    image: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=600',
     category: 'Experiencia', title: 'Isla de Murano', location: 'Venecia, Italia',
     rating: 4.7, moods: ['cultura', 'fotografía', 'historia'],
     description: 'Desde 1291 todos los hornos de vidrio de Venecia fueron trasladados a Murano para proteger la ciudad de incendios. El secreto del cristal soplado se guardó celosamente durante siglos bajo pena de muerte. Hoy se puede ver la magia de primera fila.',
@@ -944,7 +944,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'mercado-rialto',
-    image: 'https://images.unsplash.com/photo-1562564000839-e51699e1fb75?w=600',
+    image: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=600',
     category: 'Mercado', title: 'Mercado de Rialto', location: 'Venecia, Italia',
     rating: 4.7, moods: ['gastronomia', 'fotografía', 'cultura'],
     description: 'El mercado de pescado y verduras más antiguo de Venecia funciona aquí desde el año 1097. Los restaurantes de los alrededores compran en persona cada mañana lo que servirán ese día. Llegar antes de las 8am para ver el mercado en movimiento real.',
@@ -964,7 +964,7 @@ export const LUGARES: Lugar[] = [
   // ── Cusco — 4 nuevos ────────────────────────────────────────────────────────
   {
     kind: 'lugar', id: 'sacsayhuaman-cusco',
-    image: 'https://images.unsplash.com/photo-1605639537630-6f41f4e1ca4e?w=600',
+    image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
     category: 'Ruinas', title: 'Sacsayhuamán', location: 'Cusco, Perú',
     rating: 4.8, moods: ['historia', 'aventura', 'fotografía'],
     description: 'Fortaleza inca a 3.701 metros de altitud con muros de piedras de hasta 300 toneladas ensambladas sin mortero. Los cronistas españoles no podían creer que los incas lo hubieran construido sin ruedas ni animales de tiro. Todavía nadie puede explicarlo completamente.',
@@ -1002,7 +1002,7 @@ export const LUGARES: Lugar[] = [
   // ── Kyoto — 6 nuevos ────────────────────────────────────────────────────────
   {
     kind: 'lugar', id: 'nijo-jo',
-    image: 'https://images.unsplash.com/photo-1547534029498-b38d5f9fb8a2?w=600',
+    image: 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=600',
     category: 'Castillo', title: 'Castillo Nijō', location: 'Kyoto, Japón',
     rating: 4.7, moods: ['historia', 'cultura', 'fotografía'],
     description: 'Residencia del shogunato Tokugawa en Kyoto, con pasillos de "madera cantarina" —nightingale floors— que chirriaban intencionalmente para detectar asesinos. Los jardines de piedra y los murales interiores de tigres y ciruelos son obras maestras del período Edo.',
@@ -1029,7 +1029,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'ryoanji-temple',
-    image: 'https://images.unsplash.com/photo-1559827160-0b2bc9db7a82?w=600',
+    image: 'https://images.unsplash.com/photo-1480044965905-02098d419e96?w=600',
     category: 'Templo', title: 'Ryōan-ji', location: 'Kyoto, Japón',
     rating: 4.8, moods: ['relajo', 'historia', 'cultura'],
     description: 'El jardín de piedra más famoso del mundo: 15 rocas sobre grava blanca rastrillada, en una composición que nunca permite ver todas las piedras a la vez sin importar desde dónde se mire. Nadie sabe quién lo diseñó ni exactamente qué significa. Quizás ese es su punto.',
@@ -1038,7 +1038,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'kiyomizudera',
-    image: 'https://images.unsplash.com/photo-1565077228531-2aa94d24e65d?w=600',
+    image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600',
     category: 'Templo', title: 'Kiyomizu-dera', location: 'Kyoto, Japón',
     rating: 4.9, moods: ['historia', 'fotografía', 'cultura'],
     description: 'Templo budista del siglo VIII construido en la ladera de la montaña Otowa sin usar un solo clavo. La terraza de madera suspendida a 13 metros sobre el bosque ofrece las vistas más famosas de Kyoto. La expresión "saltar desde el palco de Kiyomizudera" equivale al español "jugárselo todo".',
@@ -1067,7 +1067,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'chatuchak-market',
-    image: 'https://images.unsplash.com/photo-1566073771-40dc4b7b8ef7?w=600',
+    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600',
     category: 'Mercado', title: 'Mercado Chatuchak', location: 'Bangkok, Tailandia',
     rating: 4.7, moods: ['cultura', 'gastronomia', 'aventura'],
     description: 'El mercado de fin de semana más grande del mundo: 35 acres, 15.000 puestos y más de 200.000 visitantes cada sábado y domingo. Se vende de todo, desde antigüedades hasta serpientes vivas. Hay un sector entero dedicado a comida callejera de cocina tailandesa regional.',
@@ -1123,7 +1123,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'trastevere',
-    image: 'https://images.unsplash.com/photo-1601935709226-a3b8a1aa2a0a?w=600',
+    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
     category: 'Barrio', title: 'Trastevere', location: 'Roma, Italia',
     rating: 4.7, moods: ['gastronomia', 'relajo', 'fotografía'],
     description: "El barrio más auténtico de Roma: callejones de adoquín, ropa tendida entre ventanas y trattorie donde los romanos comen de verdad. La Basílica di Santa Maria in Trastevere data del siglo III. A partir de las 20h el barrio cambia de temperatura y se convierte en el corazón nocturno de la ciudad.",
@@ -1170,7 +1170,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'jordaan',
-    image: 'https://images.unsplash.com/photo-1604580864964-0462f5d5b454?w=600',
+    image: 'https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=600',
     category: 'Barrio', title: 'Barrio Jordaan', location: 'Ámsterdam, Países Bajos',
     rating: 4.8, moods: ['cultura', 'gastronomia', 'fotografía'],
     description: 'El barrio más bonito de Ámsterdam: canales angostos bordeados de casas del siglo XVII, galerías de arte independiente, mercadillos de antigüedades y cafés marrones donde los holandeses han bebido jenever desde 1600. El Jordaan es lo que la ciudad tiene de auténtico y sin pretensiones.',
@@ -1179,7 +1179,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'heineken-experience',
-    image: 'https://images.unsplash.com/photo-1551256221-ccff686ebc82?w=600',
+    image: 'https://images.unsplash.com/photo-1559526324-593bc073d938?w=600',
     category: 'Experiencia', title: 'Heineken Experience', location: 'Ámsterdam, Países Bajos',
     rating: 4.4, moods: ['cultura', 'aventura', 'gastronomia'],
     description: 'La antigua cervecería de Heineken, activa desde 1867 hasta 1988, convertida en un recorrido interactivo sobre la historia de la marca más holandesa del mundo. Incluye catas, el proceso de producción y un bar de diseño en el edificio original. Las mejores dos cervezas de la visita están incluidas.',
@@ -1188,7 +1188,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'albert-cuyp-markt',
-    image: 'https://images.unsplash.com/photo-1562564000839-e51699e1fb75?w=600',
+    image: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=600',
     category: 'Mercado', title: 'Mercado Albert Cuyp', location: 'Ámsterdam, Países Bajos',
     rating: 4.6, moods: ['gastronomia', 'cultura', 'fotografía'],
     description: 'El mercado callejero más grande de Europa occidental: 300 puestos a lo largo de un kilómetro en el barrio de De Pijp. Quesos, arenques crudos, stroopwafels y pita turca conviven en la misma manzana. Es donde los inmigrantes y los locales de toda la vida comparten la misma acera.',
@@ -1199,7 +1199,7 @@ export const LUGARES: Lugar[] = [
   // ── Lisboa — 5 nuevos ───────────────────────────────────────────────────────
   {
     kind: 'lugar', id: 'alfama-barrio',
-    image: 'https://images.unsplash.com/photo-1507728322135-a4e2b5d5d00c?w=600',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600',
     category: 'Barrio', title: 'Barrio de Alfama', location: 'Lisboa, Portugal',
     rating: 4.7, moods: ['historia', 'cultura', 'fotografía'],
     description: 'El único barrio de Lisboa que sobrevivió al terremoto de 1755: callejones en zig-zag, ropa tendida entre ventanas de azulejo y casas de fado donde la música sale por las puertas. La mejor forma de conocerlo es perderse sin mapa siguiendo el sonido de una guitarra portuguesa.',
@@ -1208,7 +1208,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'lx-factory',
-    image: 'https://images.unsplash.com/photo-1571994668879-aa7e4c7f73ae?w=600',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
     category: 'Experiencia', title: 'LX Factory', location: 'Lisboa, Portugal',
     rating: 4.7, moods: ['cultura', 'gastronomia', 'fotografía'],
     description: 'Antigua fábrica textil del siglo XIX reconvertida en epicentro creativo: galerías, estudios de diseño, restaurantes y el mercado dominical más cool de Lisboa. Bajo el viaducto de Alcántara, con el Tejo a 200 metros. El Sunday Market tiene los mejores libros de segunda mano de la ciudad.',
@@ -1246,7 +1246,7 @@ export const LUGARES: Lugar[] = [
   // ── Singapur — 5 nuevos ─────────────────────────────────────────────────────
   {
     kind: 'lugar', id: 'sentosa-island-sg',
-    image: 'https://images.unsplash.com/photo-1515188629891-389e10d5a436?w=600',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600',
     category: 'Experiencia', title: 'Sentosa Island', location: 'Singapur',
     rating: 4.5, moods: ['aventura', 'relajo', 'fotografía'],
     description: 'La isla del ocio de Singapur conectada al mainland por cable car y monorriel. Playas artificiales pero perfectas, el parque temático Universal Studios y el casino de Marina Bay compiten en grandiosidad. De noche, el espectáculo de luces de los Supertrees desde aquí es diferente al del centro.',
@@ -1273,7 +1273,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'maxwell-food-centre',
-    image: 'https://images.unsplash.com/photo-1566073771-40dc4b7b8ef7?w=600',
+    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600',
     category: 'Mercado', title: 'Maxwell Food Centre', location: 'Singapur',
     rating: 4.8, moods: ['gastronomia', 'cultura', 'aventura'],
     description: 'El Hawker Centre más famoso de Singapur: 100 puestos en un edificio colonial de los años 20. El Tian Tian Chicken Rice tiene estrella Michelin y la cola correspondiente. Los Hawker Centres son la forma en que Singapur democratizó la cocina de los grandes chefs y la puso al alcance de cualquiera.',
@@ -1282,7 +1282,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'merlion-park',
-    image: 'https://images.unsplash.com/photo-1508672019048-2b374b963c05?w=600',
+    image: 'https://images.unsplash.com/photo-1511527661048-7fe73d85e9a4?w=600',
     category: 'Monumento', title: 'Merlion Park', location: 'Singapur',
     rating: 4.5, moods: ['fotografía', 'historia', 'relajo'],
     description: 'El Merlion —mitad pez, mitad león— es el símbolo nacional de Singapur desde 1972. La estatua de 8.6 metros de altura escupe agua al río Singapur con Marina Bay y los rascacielos al fondo. Es kitsch, turístico y obligatorio. La foto frente al Merlion es el sello de Singapur.',
@@ -1402,7 +1402,7 @@ export const DESTINOS: Destino[] = [
   {
     kind: 'destino',
     id: 'amsterdam',
-    image: 'https://images.unsplash.com/photo-1551256221-ccff686ebc82?w=1400',
+    image: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1400',
     category: 'Ciudad',
     title: 'Ámsterdam',
     location: 'Países Bajos',
@@ -1417,7 +1417,7 @@ export const DESTINOS: Destino[] = [
   {
     kind: 'destino',
     id: 'lisboa',
-    image: 'https://images.unsplash.com/photo-1507728322135-a4e2b5d5d00c?w=1400',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=1400',
     category: 'Ciudad',
     title: 'Lisboa',
     location: 'Portugal',
@@ -1432,7 +1432,7 @@ export const DESTINOS: Destino[] = [
   {
     kind: 'destino',
     id: 'singapur',
-    image: 'https://images.unsplash.com/photo-1515188629891-389e10d5a436?w=1400',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1400',
     category: 'Ciudad-estado',
     title: 'Singapur',
     location: 'Asia Sudoriental',
@@ -1792,7 +1792,7 @@ export const COMERCIOS: Comercio[] = [
   },
   {
     kind: 'comercio', id: 'canal-amsterdam-tours',
-    image: 'https://images.unsplash.com/photo-1551256221-ccff686ebc82?w=600',
+    image: 'https://images.unsplash.com/photo-1543349689-9a4d426bee8e?w=600',
     category: 'Tour Operador', title: 'Canal Amsterdam Tours',
     location: 'Ámsterdam, Países Bajos', rating: 4.7, badge: '15% OFF',
     description: 'Paseos en barco privado por los canales patrimoniales de Ámsterdam con historiador a bordo. Sus barcos eléctricos silenciosos permiten entrar en los canales más estrechos prohibidos para los barcos turísticos estándar. También ofrecen tours en bicicleta por los polders fuera de la ciudad.',
@@ -1805,7 +1805,7 @@ export const COMERCIOS: Comercio[] = [
   },
   {
     kind: 'comercio', id: 'fado-tours-lisbon',
-    image: 'https://images.unsplash.com/photo-1507728322135-a4e2b5d5d00c?w=600',
+    image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600',
     category: 'Agencia de Viajes', title: 'Fado & Lisboa Tours',
     location: 'Lisboa, Portugal', rating: 4.8, badge: '10% OFF',
     description: 'La única agencia de Lisboa que combina recorridos culturales con sesiones de fado en casas de fado históricas (no las turísticas). Guías que llevan treinta años en el barrio de Alfama organizan paseos por los miradores secretos y las tascas donde los fadistas cenan después de actuar.',
@@ -1831,7 +1831,7 @@ export const COMERCIOS: Comercio[] = [
   },
   {
     kind: 'comercio', id: 'merlion-concierge',
-    image: 'https://images.unsplash.com/photo-1515188629891-389e10d5a436?w=600',
+    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600',
     category: 'Agencia de Viajes', title: 'Merlion Premium Concierge',
     location: 'Singapur', rating: 4.8, badge: 'Priority Access',
     description: 'Concierge de lujo para viajeros en Singapur: acceso prioritario al bar infinito de Marina Bay Sands, reservas de hawker centres con colas de horas y traslados privados en Tesla entre atracciones. Especializados en maximizar tres o cuatro días en la ciudad-estado más eficiente de Asia.',
