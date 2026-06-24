@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { MapPin, ArrowLeft, SlidersHorizontal, X } from '@phosphor-icons/react'
+import {
+  MapPin, ArrowLeft, SlidersHorizontal, X, Church, Bank, Drop, Columns, Scroll,
+  Crown, Storefront, Tree, FlowerTulip, Buildings, Star, type Icon,
+} from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { Card } from '@/components/ui/Card'
 import { TransitionLink } from '@/components/ui/TransitionLink'
@@ -10,6 +13,14 @@ import { useFavorites } from '@/hooks/useFavorites'
 import { LUGARES } from '@/lib/data'
 
 const ALL_CATEGORIES = ['Todos', ...Array.from(new Set(LUGARES.map(l => l.category))).sort()]
+
+const CATEGORY_ICONS: Record<string, Icon> = {
+  Iglesia: Church, Basílica: Church, Santuario: Church, Monasterio: Church,
+  Templo: Church, Museo: Bank, Plaza: MapPin, Fuente: Drop, Monumento: Columns,
+  Ruinas: Scroll, Palacio: Crown, Castillo: Crown, Barrio: Storefront,
+  Mercado: Storefront, Parque: Tree, Jardín: FlowerTulip, Bosque: Tree,
+  Experiencia: Star, Rascacielos: Buildings,
+}
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
@@ -101,22 +112,25 @@ export default function LugaresPage() {
 
         {/* Row 2: quick chip strip — scrollable */}
         <div className="flex gap-2 overflow-x-auto scroll-hide">
-          {ALL_CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              aria-pressed={activeCategory === cat}
-              className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
-              style={{
-                background: activeCategory === cat ? 'var(--color-crimson)' : 'var(--color-surface)',
-                color: activeCategory === cat ? 'white' : 'var(--color-text-muted)',
-                border: activeCategory === cat ? 'none' : '1px solid var(--color-border)',
-              }}
-            >
-              {cat === 'Todos' && <MapPin size={11} aria-hidden="true" />}
-              {cat}
-            </button>
-          ))}
+          {ALL_CATEGORIES.map(cat => {
+            const CatIcon = cat === 'Todos' ? MapPin : CATEGORY_ICONS[cat]
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                aria-pressed={activeCategory === cat}
+                className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+                style={{
+                  background: activeCategory === cat ? 'var(--color-crimson)' : 'var(--color-surface)',
+                  color: activeCategory === cat ? 'white' : 'var(--color-text-muted)',
+                  border: activeCategory === cat ? 'none' : '1px solid var(--color-border)',
+                }}
+              >
+                {CatIcon && <CatIcon size={11} aria-hidden="true" />}
+                {cat}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -148,6 +162,7 @@ export default function LugaresPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {ALL_CATEGORIES.map(cat => {
                 const isActive = activeCategory === cat
+                const CatIcon = cat === 'Todos' ? MapPin : CATEGORY_ICONS[cat]
                 return (
                   <button
                     key={cat}
@@ -160,7 +175,7 @@ export default function LugaresPage() {
                       border: isActive ? 'none' : '1px solid var(--color-border)',
                     }}
                   >
-                    {cat === 'Todos' && <MapPin size={13} aria-hidden="true" />}
+                    {CatIcon && <CatIcon size={13} aria-hidden="true" />}
                     {cat}
                   </button>
                 )

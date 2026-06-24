@@ -1,19 +1,24 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Globe } from '@phosphor-icons/react'
+import {
+  Globe, ArrowLeft, Mountains, Bank, Waves, ForkKnife, Palette, Tent, Buildings, type Icon,
+} from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { Card } from '@/components/ui/Card'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
 import { DESTINOS } from '@/lib/data'
-import { ArrowLeft } from '@phosphor-icons/react'
 
 const ALL_MOODS = ['Todos', 'aventura', 'historia', 'cultura', 'relajo', 'gastronomia', 'naturaleza', 'moderno']
 const MOOD_LABELS: Record<string, string> = {
   todos: 'Todos', aventura: 'Aventura', historia: 'Historia', cultura: 'Cultura',
   relajo: 'Relajo', gastronomia: 'Gastronomía', naturaleza: 'Naturaleza', moderno: 'Moderno',
+}
+const MOOD_ICONS: Record<string, Icon> = {
+  todos: Globe, aventura: Mountains, historia: Bank, cultura: Palette,
+  relajo: Waves, gastronomia: ForkKnife, naturaleza: Tent, moderno: Buildings,
 }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -80,18 +85,20 @@ export default function DestinosPage() {
             {ALL_MOODS.map(mood => {
               const key = mood.toLowerCase()
               const isActive = activeMood === mood
+              const MoodIcon = MOOD_ICONS[key]
               return (
                 <button
                   key={mood}
                   onClick={() => setActiveMood(mood)}
                   aria-pressed={isActive}
-                  className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+                  className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
                   style={{
                     background: isActive ? 'var(--color-crimson)' : 'var(--color-surface)',
                     color: isActive ? 'white' : 'var(--color-text-muted)',
                     border: isActive ? 'none' : '1px solid var(--color-border)',
                   }}
                 >
+                  {MoodIcon && <MoodIcon size={11} aria-hidden="true" />}
                   {MOOD_LABELS[key] ?? mood}
                 </button>
               )

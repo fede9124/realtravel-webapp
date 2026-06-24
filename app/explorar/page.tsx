@@ -1,21 +1,20 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import {
-  MapPin, Globe, Buildings, Star, Compass, Path,
+  MapPin, Globe, Buildings, Star, Compass,
   Mountains, Bank, Waves, ForkKnife, Palette, Tent,
-  CaretLeft, CaretRight, ArrowRight,
+  CaretLeft, CaretRight, SlidersHorizontal, X,
 } from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
-import { ChipFilter } from '@/components/ui/ChipFilter'
 import { Card } from '@/components/ui/Card'
+import { RouteCard } from '@/components/ui/RouteCard'
+import { Tabs } from '@/components/ui/Tabs'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
-import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findLugar, findDestino as findDest } from '@/lib/data'
+import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findDestino as findDest } from '@/lib/data'
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
@@ -26,13 +25,19 @@ const LOCATION_FILTERS = [
   { id: 'ciudad', label: 'Ciudad', Icon: Buildings },
 ]
 
+const RATING_FILTERS = [
+  { id: 0, label: 'Todas' },
+  { id: 4, label: '4.0+' },
+  { id: 4.5, label: '4.5+' },
+]
+
 const MOODS = [
-  { id: 'aventura',    label: 'Aventura',    Icon: Mountains, bg: '#1a1a2e', accent: '#e94560' },
-  { id: 'historia',   label: 'Historia',    Icon: Bank,      bg: '#2c2416', accent: '#d4a853' },
-  { id: 'relajo',      label: 'Relajo',      Icon: Waves,     bg: '#0f2133', accent: '#4db6e4' },
-  { id: 'gastronomia', label: 'Gastronomía', Icon: ForkKnife, bg: '#1e1108', accent: '#e07b39' },
-  { id: 'cultura',     label: 'Cultura',     Icon: Palette,   bg: '#1a0d2e', accent: '#9b59b6' },
-  { id: 'naturaleza',  label: 'Naturaleza',  Icon: Tent,      bg: '#0d1f0d', accent: '#4caf50' },
+  { id: 'aventura',    label: 'Aventura',    Icon: Mountains },
+  { id: 'historia',   label: 'Historia',    Icon: Bank },
+  { id: 'relajo',      label: 'Relajo',      Icon: Waves },
+  { id: 'gastronomia', label: 'Gastronomía', Icon: ForkKnife },
+  { id: 'cultura',     label: 'Cultura',     Icon: Palette },
+  { id: 'naturaleza',  label: 'Naturaleza',  Icon: Tent },
 ]
 
 // Destinos para el carousel — todos los DESTINOS con imagen
@@ -75,17 +80,16 @@ function DestinoCarousel() {
 
   return (
     <div
-      className="reveal pb-16"
-      data-delay="100"
+      className="reveal pb-12 relative"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       {/* Hero */}
       <TransitionLink
         href={`/destinos/${d.id}`}
-        className="group block relative overflow-hidden"
+        className="group block relative overflow-hidden rounded-2xl"
         aria-label={`Ver destino: ${d.title}`}
-        style={{ height: 'clamp(360px, 52vh, 580px)' }}
+        style={{ height: 'clamp(320px, 44vh, 480px)' }}
       >
         {CAROUSEL_DESTINOS.map((dest, i) => (
           <Image
@@ -99,7 +103,6 @@ function DestinoCarousel() {
             style={{
               opacity: i === current ? 1 : 0,
               transition: 'opacity 0.7s ease',
-              transitionDelay: i === current ? '0ms' : '0ms',
             }}
           />
         ))}
@@ -110,7 +113,7 @@ function DestinoCarousel() {
         />
 
         {/* Badge */}
-        <div className="absolute top-8 left-5 sm:left-8 lg:left-12">
+        <div className="absolute top-6 left-5 sm:left-7">
           <span
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white"
             style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.05em' }}
@@ -122,7 +125,7 @@ function DestinoCarousel() {
 
         {/* Dot indicators */}
         <div
-          className="absolute top-8 right-5 sm:right-8 lg:right-12 flex items-center gap-1.5"
+          className="absolute top-6 right-5 sm:right-7 flex items-center gap-1.5"
           onClick={e => e.preventDefault()}
           aria-label="Indicadores de destino"
         >
@@ -147,7 +150,7 @@ function DestinoCarousel() {
 
         {/* Content */}
         <div
-          className="absolute bottom-10 left-5 right-5 sm:left-8 sm:right-auto lg:left-12"
+          className="absolute bottom-8 left-5 right-5 sm:left-7 sm:right-auto"
           style={{ maxWidth: '46ch' }}
         >
           <p
@@ -157,17 +160,17 @@ function DestinoCarousel() {
             {d.country}
           </p>
           <h2
-            className="text-white font-extrabold leading-none mb-4"
+            className="text-white font-extrabold leading-none mb-3"
             style={{
               fontFamily: 'var(--font-family-display)',
-              fontSize: 'clamp(3rem, 5vw, 5.5rem)',
+              fontSize: 'clamp(2.5rem, 4.5vw, 4.5rem)',
               letterSpacing: '-0.015em',
             }}
           >
             {d.title}
           </h2>
           <p
-            className="text-white/70 leading-relaxed mb-5 line-clamp-2"
+            className="text-white/70 leading-relaxed mb-4 line-clamp-2"
             style={{ fontFamily: 'var(--font-family-body)', fontSize: '15px', maxWidth: '34ch' }}
           >
             {d.editorial}
@@ -189,7 +192,7 @@ function DestinoCarousel() {
       </TransitionLink>
 
       {/* Prev / Next buttons */}
-      <div className="absolute bottom-24 right-5 sm:right-8 lg:right-12 flex gap-2" style={{ zIndex: 10 }}>
+      <div className="absolute bottom-20 right-5 sm:right-7 flex gap-2" style={{ zIndex: 10 }}>
         <button
           onClick={() => goTo(current - 1)}
           className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
@@ -214,9 +217,12 @@ function DestinoCarousel() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExplorarPage() {
+  const [activeTab, setActiveTab] = useState<'lugares' | 'destinos' | 'rutas'>('lugares')
   const [activeFilter, setActiveFilter] = useState('todos')
   const [activeMood, setActiveMood] = useState<string | null>(null)
+  const [ratingMin, setRatingMin] = useState(0)
   const [query, setQuery] = useState('')
+  const [showMoreFilters, setShowMoreFilters] = useState(false)
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const { favorites, toggleFavorite } = useFavorites()
   const revealRef = useScrollReveal()
@@ -230,7 +236,8 @@ export default function ExplorarPage() {
     )
   }, [activeFilter, userCoords])
 
-  const hasActiveFilters = query.trim() !== '' || activeMood !== null || activeFilter !== 'todos'
+  const hasActiveFilters = query.trim() !== '' || activeMood !== null || activeFilter !== 'todos' || ratingMin > 0
+  const extraFiltersCount = (activeFilter !== 'todos' ? 1 : 0) + (ratingMin > 0 ? 1 : 0)
 
   const matches = (item: Explorable) => {
     if (query.trim() !== '') {
@@ -238,6 +245,7 @@ export default function ExplorarPage() {
       if (!haystack.includes(norm(query.trim()))) return false
     }
     if (activeMood && !item.moods.includes(activeMood)) return false
+    if (ratingMin > 0 && item.rating < ratingMin) return false
     if (activeFilter === 'cerca') {
       if (!userCoords) return false
       const lat = (item as { lat?: number }).lat
@@ -250,31 +258,36 @@ export default function ExplorarPage() {
     return true
   }
 
-  // Always limit to 2 items in explorar view; "Ver todo" goes to dedicated pages
-  const filteredLugares = useMemo(() => LUGARES.filter(matches), [query, activeMood, activeFilter, userCoords])
-  const filteredDestinos = useMemo(() => DESTINOS.filter(matches), [query, activeMood, activeFilter, userCoords])
+  const filteredLugares = useMemo(() => LUGARES.filter(matches), [query, activeMood, activeFilter, ratingMin, userCoords])
+  const filteredDestinos = useMemo(() => DESTINOS.filter(matches), [query, activeMood, activeFilter, ratingMin, userCoords])
 
   const filteredRutas = useMemo(() => {
-    if (activeMood || activeFilter !== 'todos') return []
+    if (activeMood || activeFilter !== 'todos' || ratingMin > 0) return []
     if (query.trim() === '') return RUTAS
     const q = norm(query.trim())
     return RUTAS.filter(r => {
       const destino = findDest(r.destinoId)
       return norm(`${r.title} ${r.description} ${destino?.title ?? ''}`).includes(q)
     })
-  }, [query, activeMood, activeFilter])
+  }, [query, activeMood, activeFilter, ratingMin])
 
-  const router = useRouter()
   const noResults = filteredLugares.length === 0 && filteredDestinos.length === 0 && filteredRutas.length === 0
 
   const clearFilters = () => {
     setQuery('')
     setActiveMood(null)
     setActiveFilter('todos')
+    setRatingMin(0)
   }
 
+  const TABS = [
+    { id: 'lugares', label: 'Lugares', count: filteredLugares.length },
+    { id: 'destinos', label: 'Destinos', count: filteredDestinos.length },
+    { id: 'rutas', label: 'Rutas', count: filteredRutas.length },
+  ]
+
   return (
-    <div ref={revealRef} className="w-full">
+    <div ref={revealRef} className="w-full pb-24">
 
       {/* Header */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pt-14 pb-3">
@@ -292,70 +305,160 @@ export default function ExplorarPage() {
         </h1>
       </div>
 
-      {/* Search + location chips */}
-      <div className="reveal px-5 sm:px-8 lg:px-12 pb-12" data-delay="50">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <ChipFilter chips={LOCATION_FILTERS} activeId={activeFilter} onChange={setActiveFilter} className="flex-shrink-0" />
-          <div className="sm:ml-auto w-full sm:w-64 lg:w-72">
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, ciudades..." />
+      {/* Filtros — todo arriba del contenido */}
+      <div className="reveal px-5 sm:px-8 lg:px-12 pb-6" data-delay="50">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="flex-1">
+            <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, destinos, rutas..." />
           </div>
+          <button
+            onClick={() => setShowMoreFilters(true)}
+            aria-label="Abrir más filtros"
+            className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
+            style={{
+              background: extraFiltersCount > 0 ? 'var(--color-crimson)' : 'var(--color-surface)',
+              color: extraFiltersCount > 0 ? 'white' : 'var(--color-text-muted)',
+              border: extraFiltersCount > 0 ? 'none' : '1px solid var(--color-border)',
+            }}
+          >
+            <SlidersHorizontal size={15} aria-hidden="true" />
+            Más filtros
+            {extraFiltersCount > 0 && (
+              <span
+                className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                style={{ background: 'rgba(255,255,255,0.25)' }}
+              >
+                {extraFiltersCount}
+              </span>
+            )}
+          </button>
         </div>
-      </div>
 
-      {/* Carousel (always shown, no filtros) */}
-      {!hasActiveFilters && (
-        <div className="relative">
-          <DestinoCarousel />
-        </div>
-      )}
-
-      {/* Mood filters */}
-      <div className="reveal px-5 sm:px-8 lg:px-12 pb-16" data-delay="140">
-        <p
-          className="text-xs font-bold uppercase mb-5"
-          style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.12em' }}
-        >
-          ¿Qué tipo de viaje buscas?
-        </p>
-        <div
-          className="grid gap-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))' }}
-        >
-          {MOODS.map(({ id, label, Icon, bg, accent }) => {
+        {/* Mood chips */}
+        <div className="flex gap-2 overflow-x-auto scroll-hide">
+          {MOODS.map(({ id, label, Icon }) => {
             const active = activeMood === id
             return (
               <button
                 key={id}
                 onClick={() => setActiveMood(active ? null : id)}
                 aria-pressed={active}
-                className="flex items-center gap-3.5 px-5 rounded-lg cursor-pointer transition-all duration-200 active:scale-[0.97] text-left"
+                className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 active:scale-95"
                 style={{
-                  height: '72px',
-                  background: active ? bg : 'var(--color-card)',
-                  boxShadow: active ? 'none' : 'var(--shadow-card)',
-                  border: active ? `1px solid ${accent}33` : '1px solid var(--color-border)',
+                  background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
+                  color: active ? 'white' : 'var(--color-text-muted)',
+                  border: active ? 'none' : '1px solid var(--color-border)',
                 }}
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: active ? 'rgba(255,255,255,0.12)' : 'var(--color-crimson-light)' }}
-                >
-                  <Icon size={19} weight={active ? 'fill' : 'regular'} aria-hidden="true" style={{ color: active ? accent : 'var(--color-crimson)' }} />
-                </div>
-                <span
-                  className="text-sm font-bold leading-tight truncate"
-                  style={{ color: active ? 'white' : 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)', letterSpacing: '-0.01em' }}
-                >
-                  {label}
-                </span>
+                <Icon size={11} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
+                {label}
               </button>
             )
           })}
         </div>
       </div>
 
+      {/* Modal: más filtros */}
+      {showMoreFilters && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowMoreFilters(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: 'var(--color-card)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-bold text-base" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+                Más filtros
+              </h2>
+              <button
+                onClick={() => setShowMoreFilters(false)}
+                aria-label="Cerrar filtros"
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                style={{ color: 'var(--color-text-muted)', background: 'var(--color-surface)' }}
+              >
+                <X size={15} aria-hidden="true" />
+              </button>
+            </div>
+
+            <p className="text-xs font-bold uppercase mb-2.5" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
+              Ubicación
+            </p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {LOCATION_FILTERS.map(({ id, label, Icon }) => {
+                const active = activeFilter === id
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveFilter(id)}
+                    aria-pressed={active}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all"
+                    style={{
+                      background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
+                      color: active ? 'white' : 'var(--color-text-muted)',
+                      border: active ? 'none' : '1px solid var(--color-border)',
+                    }}
+                  >
+                    {Icon && <Icon size={13} aria-hidden="true" />}
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="text-xs font-bold uppercase mb-2.5" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
+              Calificación mínima
+            </p>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {RATING_FILTERS.map(({ id, label }) => {
+                const active = ratingMin === id
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setRatingMin(id)}
+                    aria-pressed={active}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all"
+                    style={{
+                      background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
+                      color: active ? 'white' : 'var(--color-text-muted)',
+                      border: active ? 'none' : '1px solid var(--color-border)',
+                    }}
+                  >
+                    {id > 0 && <Star size={12} weight="fill" aria-hidden="true" />}
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => { setActiveFilter('todos'); setRatingMin(0); setShowMoreFilters(false) }}
+              className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+              style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="100">
+        <Tabs tabs={TABS} activeId={activeTab} onChange={id => setActiveTab(id as typeof activeTab)} />
+      </div>
+
+      {/* Carousel — solo en tab Destinos, sin filtros activos */}
+      {activeTab === 'destinos' && !hasActiveFilters && (
+        <div className="px-5 sm:px-8 lg:px-12">
+          <DestinoCarousel />
+        </div>
+      )}
+
       {/* Sin resultados */}
-      {noResults && hasActiveFilters && (
+      {noResults && hasActiveFilters ? (
         <div className="px-5 sm:px-8 lg:px-12 pb-24">
           <div
             className="flex flex-col items-center justify-center gap-6 px-6 py-20 rounded-2xl"
@@ -375,7 +478,7 @@ export default function ExplorarPage() {
               <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
                 {query.trim() !== ''
                   ? `No encontramos resultados para "${query.trim()}".`
-                  : 'Ningún lugar coincide con los filtros seleccionados.'}
+                  : 'Ningún elemento coincide con los filtros seleccionados.'}
               </p>
             </div>
             <button
@@ -387,295 +490,64 @@ export default function ExplorarPage() {
             </button>
           </div>
         </div>
+      ) : (
+        <div className="px-5 sm:px-8 lg:px-12">
+
+          {/* Tab: Lugares */}
+          {activeTab === 'lugares' && filteredLugares.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
+              {filteredLugares.map((lugar, i) => (
+                <Card
+                  key={lugar.id}
+                  {...lugar}
+                  revealDelay={i * 30}
+                  priority={i === 0}
+                  isFavorite={favorites.has(lugar.id)}
+                  onFavoriteToggle={() => toggleFavorite(lugar.id)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Tab: Destinos */}
+          {activeTab === 'destinos' && filteredDestinos.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
+              {filteredDestinos.map((destino, i) => (
+                <Card
+                  key={destino.id}
+                  {...destino}
+                  href={`/destinos/${destino.id}`}
+                  revealDelay={i * 30}
+                  priority={i === 0}
+                  isFavorite={favorites.has(destino.id)}
+                  onFavoriteToggle={() => toggleFavorite(destino.id)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Tab: Rutas */}
+          {activeTab === 'rutas' && filteredRutas.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
+              {filteredRutas.map((ruta, i) => {
+                const destino = findDest(ruta.destinoId)
+                return (
+                  <RouteCard
+                    key={ruta.id}
+                    {...ruta}
+                    destinoTitle={destino?.title}
+                    revealDelay={i * 30}
+                    isFavorite={favorites.has(ruta.id)}
+                    onFavoriteToggle={() => toggleFavorite(ruta.id)}
+                  />
+                )
+              })}
+            </div>
+          )}
+
+        </div>
       )}
 
-      {/* Lugares — 1 fila, tantos como entren */}
-      {filteredLugares.length > 0 && (
-        <section aria-labelledby="heading-lugares" className="px-5 sm:px-8 lg:px-12 pb-16">
-          <SectionHeader
-            id="heading-lugares"
-            title="Lugares"
-            total={filteredLugares.length}
-            href="/lugares"
-          />
-          <HScrollRow>
-            {filteredLugares.slice(0, 8).map((lugar, i) => (
-              <Card
-                key={lugar.id}
-                {...lugar}
-                revealDelay={i * 60}
-                priority={i === 0}
-                isFavorite={favorites.has(lugar.id)}
-                onFavoriteToggle={() => toggleFavorite(lugar.id)}
-                style={{ flex: '0 0 280px' }}
-              />
-            ))}
-          </HScrollRow>
-          <div className="mt-8 text-center">
-            <TransitionLink
-              href="/lugares"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
-              style={{ background: 'var(--color-crimson)', color: 'white', fontFamily: 'var(--font-family-heading)' }}
-            >
-              Ver todos los lugares ({filteredLugares.length})
-              <ArrowRight size={15} weight="bold" aria-hidden="true" />
-            </TransitionLink>
-          </div>
-        </section>
-      )}
-
-      {/* Destinos — 1 fila, tantos como entren */}
-      {filteredDestinos.length > 0 && (
-        <section aria-labelledby="heading-destinos" className="px-5 sm:px-8 lg:px-12 pb-16">
-          <SectionHeader
-            id="heading-destinos"
-            title="Destinos"
-            total={filteredDestinos.length}
-            href="/destinos"
-          />
-          <HScrollRow>
-            {filteredDestinos.slice(0, 8).map((destino, i) => (
-              <Card
-                key={destino.id}
-                {...destino}
-                href={`/destinos/${destino.id}`}
-                revealDelay={i * 60}
-                isFavorite={favorites.has(destino.id)}
-                onFavoriteToggle={() => toggleFavorite(destino.id)}
-                style={{ flex: '0 0 280px' }}
-              />
-            ))}
-          </HScrollRow>
-          <div className="mt-8 text-center">
-            <TransitionLink
-              href="/destinos"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
-              style={{ background: 'var(--color-crimson)', color: 'white', fontFamily: 'var(--font-family-heading)' }}
-            >
-              Ver todos los destinos ({filteredDestinos.length})
-              <ArrowRight size={15} weight="bold" aria-hidden="true" />
-            </TransitionLink>
-          </div>
-        </section>
-      )}
-
-      {/* Rutas — 1 fila, tantos como entren */}
-      {filteredRutas.length > 0 && (
-        <section aria-labelledby="heading-rutas" className="px-5 sm:px-8 lg:px-12 pb-24">
-          <SectionHeader
-            id="heading-rutas"
-            title="Rutas"
-            total={filteredRutas.length}
-            href="/rutas"
-          />
-          <HScrollRow gap="20px">
-            {filteredRutas.slice(0, 6).map(ruta => {
-              const destino = findDest(ruta.destinoId)
-              const stops = ruta.stops.map(findLugar).filter(Boolean)
-              return (
-                <div
-                  key={ruta.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => router.push(`/rutas/${ruta.id}`)}
-                  onKeyDown={e => e.key === 'Enter' && router.push(`/rutas/${ruta.id}`)}
-                  className="reveal rounded-2xl p-6 cursor-pointer transition-shadow hover:shadow-lg"
-                  style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)', flex: '0 0 340px' }}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <p
-                        className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-                        style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
-                      >
-                        {destino?.title ?? ruta.destinoId}
-                      </p>
-                      <h3
-                        className="text-lg font-bold"
-                        style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-display)' }}
-                      >
-                        {ruta.title}
-                      </h3>
-                    </div>
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'var(--color-crimson-light)' }}
-                    >
-                      <Path size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
-                    </div>
-                  </div>
-                  <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                    {ruta.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {[ruta.duration, ruta.distance, `${ruta.stops.length} paradas`].map(tag => (
-                      <span
-                        key={tag}
-                        className="text-xs px-2.5 py-1 rounded-lg font-medium"
-                        style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {stops.map((lugar, i) => lugar && (
-                      <div key={lugar.id} className="flex items-center gap-2.5">
-                        <div className="flex flex-col items-center">
-                          <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-                            style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
-                          >
-                            {i + 1}
-                          </div>
-                          {i < stops.length - 1 && (
-                            <div className="w-px h-3" style={{ background: 'var(--color-border)' }} />
-                          )}
-                        </div>
-                        <Link
-                          href={`/explorar/${lugar.id}`}
-                          className="text-sm font-medium hover:underline"
-                          style={{ color: 'var(--color-text-primary)' }}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          {lugar.title}
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </HScrollRow>
-          <div className="mt-8 text-center">
-            <TransitionLink
-              href="/rutas"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
-              style={{ background: 'var(--color-crimson)', color: 'white', fontFamily: 'var(--font-family-heading)' }}
-            >
-              Ver todas las rutas ({filteredRutas.length})
-              <ArrowRight size={15} weight="bold" aria-hidden="true" />
-            </TransitionLink>
-          </div>
-        </section>
-      )}
-
-    </div>
-  )
-}
-
-// ─── Horizontal scroll row with prev/next arrows ─────────────────────────────
-
-function HScrollRow({ children, gap = '24px' }: { children: React.ReactNode; gap?: string }) {
-  const rowRef = useRef<HTMLDivElement>(null)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(true)
-
-  useEffect(() => {
-    const el = rowRef.current
-    if (!el) return
-    const update = () => {
-      setCanLeft(el.scrollLeft > 4)
-      setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
-    }
-    update()
-    el.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update) }
-  }, [])
-
-  const scroll = (dir: 'left' | 'right') =>
-    rowRef.current?.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' })
-
-  const FADE_W = 80
-  const btnStyle = (side: 'left' | 'right'): React.CSSProperties => ({
-    position: 'absolute',
-    [side]: '8px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 20,
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    background: 'var(--color-card)',
-    color: 'var(--color-text-primary)',
-    boxShadow: 'var(--shadow-card)',
-    border: '1px solid var(--color-border)',
-    transition: 'transform 150ms ease, box-shadow 150ms ease',
-  })
-
-  return (
-    <div style={{ position: 'relative' }}>
-      {/* Gradient fades */}
-      {canLeft && (
-        <div aria-hidden="true" style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${FADE_W}px`, zIndex: 10, pointerEvents: 'none', background: 'linear-gradient(to right, var(--color-surface) 30%, transparent)' }} />
-      )}
-      {canRight && (
-        <div aria-hidden="true" style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: `${FADE_W}px`, zIndex: 10, pointerEvents: 'none', background: 'linear-gradient(to left, var(--color-surface) 30%, transparent)' }} />
-      )}
-
-      {/* Scroll container */}
-      <div ref={rowRef} style={{ display: 'flex', flexWrap: 'nowrap', gap, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}>
-        {children}
-      </div>
-
-      {/* Arrow buttons */}
-      {canLeft && (
-        <button onClick={() => scroll('left')} aria-label="Desplazar izquierda" style={btnStyle('left')}>
-          <CaretLeft size={16} weight="bold" aria-hidden="true" />
-        </button>
-      )}
-      {canRight && (
-        <button onClick={() => scroll('right')} aria-label="Desplazar derecha" style={btnStyle('right')}>
-          <CaretRight size={16} weight="bold" aria-hidden="true" />
-        </button>
-      )}
-    </div>
-  )
-}
-
-// ─── Section header ───────────────────────────────────────────────────────────
-
-function SectionHeader({
-  id, title, total, href,
-}: {
-  id: string; title: string; total: number; href: string
-}) {
-  return (
-    <div
-      className="reveal flex items-baseline justify-between mb-7 pb-3 border-b"
-      style={{ borderColor: 'var(--color-text-primary)' }}
-    >
-      <h2
-        id={id}
-        style={{
-          fontFamily: 'var(--font-family-display)',
-          color: 'var(--color-text-primary)',
-          fontSize: 'clamp(1.75rem, 2.5vw, 2.25rem)',
-          letterSpacing: '-0.01em',
-          fontWeight: 600,
-          lineHeight: 1,
-        }}
-      >
-        {title}
-      </h2>
-      <TransitionLink
-        href={href}
-        className="text-[11px] font-semibold uppercase flex-shrink-0 flex items-center gap-1 transition-opacity hover:opacity-70"
-        style={{
-          color: 'var(--color-crimson)',
-          fontFamily: 'var(--font-family-body)',
-          fontVariantNumeric: 'tabular-nums',
-          letterSpacing: '0.08em',
-        }}
-      >
-        Ver todo ({total})
-        <ArrowRight size={11} weight="bold" aria-hidden="true" />
-      </TransitionLink>
     </div>
   )
 }

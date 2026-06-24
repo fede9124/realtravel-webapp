@@ -3,32 +3,86 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import type { MapPlace, MapDestino } from '@/app/mapa/page'
+import type { MapPlace, MapDestino, MapComercio } from '@/app/mapa/page'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Place markers visible from this zoom level onwards (city level)
-const PLACE_MIN_ZOOM = 7.5
-// Destino pin markers hidden above this zoom (individual places dominate)
-const DESTINO_MAX_ZOOM = 6.5
+// Three gradual zoom layers: destinos (world/continental) → comercios (regional) → lugares (city)
+const DESTINO_MAX_ZOOM = 7
+const COMERCIO_MIN_ZOOM = 6
+const COMERCIO_MAX_ZOOM = 10
+const PLACE_MIN_ZOOM = 8
 
-// ── Place marker — simple crimson dot ────────────────────────────────────────
+const OPACITY_TRANSITION = 'opacity 350ms ease'
 
-function createPlaceMarkerEl(onSelect: () => void): HTMLElement {
+// ── Category → icon + accent color ────────────────────────────────────────────
+// Simple monochrome glyphs (not pixel-perfect Phosphor icons) — vanilla marker DOM can't render React icon components.
+
+const ICON_CHURCH = '<path d="M12 2v4M9.5 5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M5 21V11l7-5 7 5v10" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>'
+const ICON_MUSEUM = '<path d="M3 9l9-5 9 5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M5 9v10M9.5 9v10M14.5 9v10M19 9v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 21h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+const ICON_TREE = '<circle cx="12" cy="9" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 15v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+const ICON_MONUMENT = '<path d="M12 2l4 8H8l4-8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/><path d="M9 10v11M15 10v11M5 21h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+const ICON_CROWN = '<path d="M4 18h16M4 18l-1-9 5 4 4-7 4 7 5-4-1 9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/>'
+const ICON_SHOP = '<path d="M4 9l1-5h14l1 5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M4 9h16v11H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M9 13a3 3 0 0 0 6 0" stroke="currentColor" stroke-width="1.6" fill="none"/>'
+const ICON_BUILDINGS = '<path d="M4 21V9l6-4v16M14 21V13l6-4v12" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><path d="M2 21h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
+const ICON_STAR = '<path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.1 1.3-6.6-4.9-4.6 6.6-.7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>'
+const ICON_PIN = '<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="none"/><circle cx="12" cy="9" r="2.4" stroke="currentColor" stroke-width="1.6" fill="none"/>'
+
+interface CategoryMarker { color: string; icon: string }
+
+const CATEGORY_MARKERS: Record<string, CategoryMarker> = {
+  Iglesia: { color: '#c41230', icon: ICON_CHURCH },
+  Basílica: { color: '#c41230', icon: ICON_CHURCH },
+  Santuario: { color: '#c41230', icon: ICON_CHURCH },
+  Monasterio: { color: '#c41230', icon: ICON_CHURCH },
+  Templo: { color: '#c41230', icon: ICON_CHURCH },
+  Museo: { color: '#8B5CF6', icon: ICON_MUSEUM },
+  Parque: { color: '#16A34A', icon: ICON_TREE },
+  Jardín: { color: '#16A34A', icon: ICON_TREE },
+  Bosque: { color: '#16A34A', icon: ICON_TREE },
+  Monumento: { color: '#D97706', icon: ICON_MONUMENT },
+  Fuente: { color: '#D97706', icon: ICON_MONUMENT },
+  Ruinas: { color: '#D97706', icon: ICON_MONUMENT },
+  Palacio: { color: '#7C3AED', icon: ICON_CROWN },
+  Castillo: { color: '#7C3AED', icon: ICON_CROWN },
+  Barrio: { color: '#EA580C', icon: ICON_SHOP },
+  Mercado: { color: '#EA580C', icon: ICON_SHOP },
+  Plaza: { color: '#059669', icon: ICON_PIN },
+  Rascacielos: { color: '#475569', icon: ICON_BUILDINGS },
+  Experiencia: { color: '#0891B2', icon: ICON_STAR },
+}
+
+const DEFAULT_MARKER: CategoryMarker = { color: '#c41230', icon: ICON_PIN }
+
+function getCategoryMarker(category: string): CategoryMarker {
+  return CATEGORY_MARKERS[category] ?? DEFAULT_MARKER
+}
+
+// ── Place marker — icon by category, larger + stronger shadow when featured ──
+
+function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement {
+  const { color, icon } = getCategoryMarker(place.category)
+  const size = place.featured ? 34 : 26
+  const iconSize = place.featured ? 18 : 14
+
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = 'width:22px;height:22px;cursor:pointer;'
+  el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
 
   const inner = document.createElement('div')
   inner.style.cssText = `
-    width:22px;height:22px;border-radius:50%;
-    background:#c41230;border:2.5px solid white;
-    box-shadow:0 2px 6px rgba(0,0,0,0.25);
-    transition:transform 0.12s ease,background 0.12s ease;
+    width:${size}px;height:${size}px;border-radius:50%;
+    background:white;border:2.5px solid ${color};
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:${place.featured ? '0 4px 14px rgba(0,0,0,0.35)' : '0 2px 6px rgba(0,0,0,0.25)'};
+    transition:transform 0.12s ease;
+    color:${color};
   `
+  inner.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none">${icon}</svg>`
+  inner.dataset.baseColor = color
 
   el.addEventListener('mouseenter', () => {
-    if (!el.dataset.selected) inner.style.transform = 'scale(1.25)'
+    if (!el.dataset.selected) inner.style.transform = 'scale(1.2)'
   })
   el.addEventListener('mouseleave', () => {
     if (!el.dataset.selected) inner.style.transform = 'scale(1)'
@@ -45,7 +99,7 @@ function createPlaceMarkerEl(onSelect: () => void): HTMLElement {
 function createDestinoPinEl(destino: MapDestino): HTMLElement {
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = 'width:44px;height:52px;display:flex;flex-direction:column;align-items:center;cursor:pointer;'
+  el.style.cssText = `width:44px;height:52px;display:flex;flex-direction:column;align-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
 
   const circle = document.createElement('div')
   circle.style.cssText = `
@@ -81,6 +135,33 @@ function createDestinoPinEl(destino: MapDestino): HTMLElement {
   return el
 }
 
+// ── Comercio marker — store icon, intermediate zoom layer ────────────────────
+
+function createComercioMarkerEl(comercio: MapComercio, onSelect: () => void): HTMLElement {
+  const el = document.createElement('div')
+  // No position:relative on root element (CLAUDE.md rule)
+  el.style.cssText = `width:26px;height:26px;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
+
+  const inner = document.createElement('div')
+  inner.style.cssText = `
+    width:26px;height:26px;border-radius:50%;
+    background:white;border:2.5px solid #EA580C;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+    transition:transform 0.12s ease;
+    color:#EA580C;
+  `
+  inner.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none">${ICON_SHOP}</svg>`
+  inner.dataset.baseColor = '#EA580C'
+
+  el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.2)' })
+  el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)' })
+  el.addEventListener('click', onSelect)
+
+  el.appendChild(inner)
+  return el
+}
+
 // ── User location dot ─────────────────────────────────────────────────────────
 
 function createUserMarkerEl() {
@@ -100,17 +181,20 @@ interface MapBounds { north: number; south: number; east: number; west: number }
 interface Props {
   places: MapPlace[]
   destinos?: MapDestino[]
+  comercios?: MapComercio[]
   selectedId: string | null
+  flyToTarget?: { lat: number; lng: number; zoom?: number } | null
   onSelect?: (id: string) => void
   onBoundsChange?: (bounds: MapBounds) => void
 }
 
-export default function MapView({ places, destinos, selectedId, onSelect, onBoundsChange }: Props) {
+export default function MapView({ places, destinos, comercios, selectedId, flyToTarget, onSelect, onBoundsChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const placeMarkersRef = useRef<{ marker: mapboxgl.Marker; id: string }[]>([])
   const destinoMarkersRef = useRef<mapboxgl.Marker[]>([])
+  const comercioMarkersRef = useRef<mapboxgl.Marker[]>([])
 
   // Keep callbacks current so event listeners don't go stale
   const onSelectRef = useRef(onSelect)
@@ -187,22 +271,25 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Zoom-based visibility — controls place + destino markers by zoom ───────
+  // ── Zoom-based visibility — 3 gradual layers: destinos → comercios → lugares ─
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapLoaded) return
+
+    const setVisible = (el: HTMLElement, visible: boolean) => {
+      el.style.opacity = visible ? '1' : '0'
+      el.style.pointerEvents = visible ? 'auto' : 'none'
+    }
 
     const updateVisibility = () => {
       const zoom = map.getZoom()
       const showPlaces = zoom >= PLACE_MIN_ZOOM
       const showDestinos = zoom < DESTINO_MAX_ZOOM
+      const showComercios = zoom >= COMERCIO_MIN_ZOOM && zoom <= COMERCIO_MAX_ZOOM
 
-      placeMarkersRef.current.forEach(({ marker }) => {
-        marker.getElement().style.display = showPlaces ? 'block' : 'none'
-      })
-      destinoMarkersRef.current.forEach(m => {
-        m.getElement().style.display = showDestinos ? 'flex' : 'none'
-      })
+      placeMarkersRef.current.forEach(({ marker }) => setVisible(marker.getElement(), showPlaces))
+      destinoMarkersRef.current.forEach(m => setVisible(m.getElement(), showDestinos))
+      comercioMarkersRef.current.forEach(m => setVisible(m.getElement(), showComercios))
     }
 
     map.on('zoom', updateVisibility)
@@ -224,8 +311,8 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
     const showMarkers = zoom >= PLACE_MIN_ZOOM
 
     places.forEach(place => {
-      const el = createPlaceMarkerEl(() => { onSelectRef.current?.(place.id) })
-      el.style.display = showMarkers ? 'block' : 'none'
+      const el = createPlaceMarkerEl(place, () => { onSelectRef.current?.(place.id) })
+      if (showMarkers) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([place.lng, place.lat])
@@ -240,6 +327,34 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [places, mapLoaded])
+
+  // ── Comercio markers — intermediate zoom layer ─────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapLoaded || !comercios?.length) return
+
+    comercioMarkersRef.current.forEach(m => m.remove())
+    comercioMarkersRef.current = []
+
+    const zoom = map.getZoom()
+    const showComercios = zoom >= COMERCIO_MIN_ZOOM && zoom <= COMERCIO_MAX_ZOOM
+
+    comercios.forEach(comercio => {
+      const el = createComercioMarkerEl(comercio, () => { onSelectRef.current?.(comercio.id) })
+      if (showComercios) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([comercio.lng, comercio.lat])
+        .addTo(map)
+
+      comercioMarkersRef.current.push(marker)
+    })
+
+    return () => {
+      comercioMarkersRef.current.forEach(m => m.remove())
+      comercioMarkersRef.current = []
+    }
+  }, [comercios, mapLoaded])
 
   // ── Selected highlight + flyTo ────────────────────────────────────────────
   useEffect(() => {
@@ -275,7 +390,7 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
 
     destinos.forEach(destino => {
       const el = createDestinoPinEl(destino)
-      el.style.display = showDestinos ? 'flex' : 'none'
+      if (showDestinos) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
       el.addEventListener('click', () => {
         map.flyTo({ center: [destino.lng, destino.lat], zoom: 10, duration: 1200, essential: true })
       })
@@ -294,6 +409,18 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
     }
   }, [destinos, mapLoaded])
 
+  // ── External flyTo target (e.g. search result selection) ──────────────────
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapLoaded || !flyToTarget) return
+    map.flyTo({
+      center: [flyToTarget.lng, flyToTarget.lat],
+      zoom: flyToTarget.zoom ?? Math.max(map.getZoom(), 13),
+      duration: 1000,
+      essential: true,
+    })
+  }, [flyToTarget, mapLoaded])
+
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 }
 
@@ -302,13 +429,16 @@ export default function MapView({ places, destinos, selectedId, onSelect, onBoun
 function applySelectionStyle(el: HTMLElement, isSelected: boolean) {
   const inner = el.firstElementChild as HTMLElement | null
   if (!inner) return
+  const baseColor = inner.dataset.baseColor ?? '#c41230'
   el.dataset.selected = isSelected ? 'true' : ''
   if (isSelected) {
-    inner.style.background = '#7a0a1e'
-    inner.style.transform = 'scale(1.45)'
-    inner.style.boxShadow = '0 3px 12px rgba(196,18,48,0.5)'
+    inner.style.background = baseColor
+    inner.style.color = 'white'
+    inner.style.transform = 'scale(1.35)'
+    inner.style.boxShadow = '0 4px 14px rgba(0,0,0,0.4)'
   } else {
-    inner.style.background = '#c41230'
+    inner.style.background = 'white'
+    inner.style.color = baseColor
     inner.style.transform = 'scale(1)'
     inner.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)'
   }

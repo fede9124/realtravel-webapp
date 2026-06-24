@@ -29,7 +29,7 @@ export function ChipFilter({ chips, activeId, onChange, className = '' }: ChipFi
             key={chip.id}
             onClick={() => onChange(chip.id)}
             aria-pressed={isActive}
-            className="flex items-center gap-1.5 flex-shrink-0 px-4.5 py-2.5 rounded-full text-sm font-medium cursor-pointer transition-all duration-200 active:scale-95"
+            className="flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all duration-200 active:scale-95"
             style={{
               background: isActive ? 'var(--color-crimson)' : 'var(--color-card)',
               color: isActive ? 'white' : 'var(--color-text-muted)',

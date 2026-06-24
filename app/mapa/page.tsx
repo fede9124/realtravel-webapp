@@ -1,14 +1,15 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { useState, useEffect, useMemo } from 'react'
 import {
   Crosshair, Star, Church, Tree, ShoppingBag, Bank,
-  List, X, Buildings, Palette, Crown, MapPin,
+  List, X, Buildings, Palette, Crown, MapPin, MagnifyingGlass,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import type { Icon } from '@phosphor-icons/react'
-import { LUGARES, DESTINOS, hrefFor } from '@/lib/data'
+import { LUGARES, DESTINOS, COMERCIOS } from '@/lib/data'
 
 const MapView = dynamic(() => import('@/components/map/MapView'), {
   ssr: false,
@@ -52,34 +53,8 @@ const CATEGORY_ICONS: Record<string, Icon> = {
   Museo: Palette,
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Iglesia: '#FDE8D8',
-  Basílica: '#FDE8D8',
-  Monasterio: '#FDE8D8',
-  Templo: '#FEF3C7',
-  Santuario: '#FEF3C7',
-  Experiencia: '#FEF3C7',
-  Bosque: '#DCFCE7',
-  Parque: '#DCFCE7',
-  Jardín: '#DCFCE7',
-  Monumento: '#DBEAFE',
-  Fuente: '#DBEAFE',
-  Ruinas: '#F3E8FF',
-  Mercado: '#FFF7ED',
-  Barrio: '#ECFDF5',
-  Plaza: '#ECFDF5',
-  Palacio: '#E0E7FF',
-  Castillo: '#E0E7FF',
-  Museo: '#FCE7F3',
-  Rascacielos: '#E0F2FE',
-}
-
 function getCategoryIcon(category: string): Icon {
   return CATEGORY_ICONS[category] ?? MapPin
-}
-
-function getCategoryColor(category: string): string {
-  return CATEGORY_COLORS[category] ?? '#EDE9E4'
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -118,6 +93,42 @@ const ALL_MAP_DESTINOS: MapDestino[] = DESTINOS
     lng: DESTINO_COORDS[d.id].lng,
   }))
 
+// ── Comercios — coordenadas derivadas del destino vinculado + jitter determinístico ─
+
+export interface MapComercio {
+  id: string
+  title: string
+  category: string
+  image: string
+  lat: number
+  lng: number
+}
+
+function hashJitter(id: string): { dLat: number; dLng: number } {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) % 10000
+  const angle = (hash / 10000) * Math.PI * 2
+  const radius = 0.04 + (hash % 7) * 0.01
+  return { dLat: Math.sin(angle) * radius, dLng: Math.cos(angle) * radius }
+}
+
+const ALL_MAP_COMERCIOS: MapComercio[] = COMERCIOS
+  .filter(c => c.destinoId && DESTINO_COORDS[c.destinoId] !== undefined)
+  .map(c => {
+    const base = DESTINO_COORDS[c.destinoId!]
+    const { dLat, dLng } = hashJitter(c.id)
+    return {
+      id: c.id,
+      title: c.title,
+      category: c.category,
+      image: c.logo ?? c.image,
+      lat: base.lat + dLat,
+      lng: base.lng + dLng,
+    }
+  })
+
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+
 // ── Haversine distance (km) ───────────────────────────────────────────────────
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -140,6 +151,9 @@ export interface MapPlace {
   rating: number
   lat: number
   lng: number
+  featured?: boolean
+  image?: string
+  description?: string
 }
 
 const ALL_PLACES: MapPlace[] = LUGARES
@@ -154,6 +168,9 @@ const ALL_PLACES: MapPlace[] = LUGARES
     rating: l.rating,
     lat: l.lat!,
     lng: l.lng!,
+    featured: l.featured,
+    image: l.image,
+    description: l.description,
   }))
 
 const CATEGORIES = ['Todos', ...Array.from(new Set(ALL_PLACES.map(p => p.category))).sort()]
@@ -169,6 +186,8 @@ export default function MapaPage() {
   const [nearbyMode, setNearbyMode] = useState(false)
   const [geoLoading, setGeoLoading] = useState(false)
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -199,6 +218,20 @@ export default function MapaPage() {
       ? ALL_PLACES
       : ALL_PLACES.filter(p => p.category === activeCategory)
   , [activeCategory])
+
+  // Search results — across all places regardless of category/viewport filters
+  const searchResults = useMemo(() => {
+    const q = norm(searchQuery.trim())
+    if (!q) return []
+    return ALL_PLACES.filter(p => norm(`${p.title} ${p.location}`).includes(q)).slice(0, 6)
+  }, [searchQuery])
+
+  function handleSearchSelect(place: MapPlace) {
+    setSelectedId(place.id)
+    setFlyToTarget({ lat: place.lat, lng: place.lng, zoom: 13 })
+    setSearchQuery('')
+    if (isMobile) setPanelOpen(false)
+  }
 
   // List items — filtered by current viewport bounds and optionally sorted by proximity
   const filtered = useMemo(() => {
@@ -249,6 +282,44 @@ export default function MapaPage() {
           {filtered.length} lugar{filtered.length !== 1 ? 'es' : ''} en vista
         </p>
 
+        <div className="relative mb-3">
+          <MagnifyingGlass
+            size={15}
+            aria-hidden="true"
+            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Buscar un lugar..."
+            aria-label="Buscar un lugar en el mapa"
+            className="w-full text-sm rounded-xl py-2.5 pl-9 pr-3 outline-none"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+          />
+          {searchResults.length > 0 && (
+            <div
+              className="absolute left-0 right-0 top-full mt-1.5 rounded-xl overflow-hidden z-10"
+              style={{ background: 'var(--color-card)', boxShadow: '0 12px 32px rgba(0,0,0,0.18)', border: '1px solid var(--color-border)' }}
+            >
+              {searchResults.map(place => (
+                <button
+                  key={place.id}
+                  onClick={() => handleSearchSelect(place)}
+                  className="w-full text-left px-3.5 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <MapPin size={13} aria-hidden="true" style={{ color: 'var(--color-crimson)', flexShrink: 0 }} />
+                  <span className="truncate">{place.title}</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>· {place.location}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-2 overflow-x-auto scroll-hide pb-1">
           <button
             onClick={toggleNearby}
@@ -290,15 +361,13 @@ export default function MapaPage() {
 
       <div className="flex-1 overflow-y-auto">
         {filtered.map(place => {
-          const PlaceIcon = getCategoryIcon(place.category)
-          const bgColor = getCategoryColor(place.category)
           const isSelected = selectedId === place.id
 
           return (
             <button
               key={place.id}
               onClick={() => handleSelect(place.id)}
-              className="w-full text-left px-5 py-[16px] border-b cursor-pointer transition-colors"
+              className="w-full text-left px-5 py-[14px] border-b cursor-pointer transition-colors"
               style={{
                 borderColor: 'var(--color-border)',
                 background: isSelected ? 'var(--color-crimson-light)' : 'transparent',
@@ -310,43 +379,47 @@ export default function MapaPage() {
                 if (!isSelected) e.currentTarget.style.background = 'transparent'
               }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: bgColor }}
-                    aria-hidden="true"
-                  >
-                    <PlaceIcon size={17} weight="regular" style={{ color: 'var(--color-text-primary)' }} />
-                  </div>
-                  <div className="min-w-0">
+              <div className="flex items-start gap-3">
+                <div
+                  className="relative flex-shrink-0 rounded-xl overflow-hidden"
+                  style={{ width: '64px', height: '64px', background: 'var(--color-border)' }}
+                >
+                  {place.image && (
+                    <Image src={place.image} alt={place.title} fill className="object-cover" sizes="64px" />
+                  )}
+                  {place.featured && (
+                    <span
+                      className="absolute top-1 left-1 flex items-center justify-center rounded-full"
+                      style={{ width: '16px', height: '16px', background: 'var(--color-crimson)' }}
+                      aria-label="Lugar destacado"
+                    >
+                      <Star size={9} weight="fill" color="white" aria-hidden="true" />
+                    </span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
                     <p
                       className="font-semibold text-sm truncate"
                       style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
                     >
                       {place.title}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span
-                        className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                        style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
-                      >
-                        {place.category}
+                    <span className="flex items-center gap-0.5 flex-shrink-0">
+                      <Star size={10} weight="fill" color="#FBBF24" aria-hidden="true" />
+                      <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                        {place.rating.toFixed(1)}
                       </span>
-                      <span className="text-xs truncate" style={{ color: 'var(--color-text-muted)' }}>
-                        · {place.location}
-                      </span>
-                    </div>
+                    </span>
                   </div>
-                </div>
-                <div className="flex items-center gap-0.5 flex-shrink-0">
-                  <Star size={11} weight="fill" color="#FBBF24" aria-hidden="true" />
-                  <span
-                    className="text-xs font-semibold"
-                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
-                  >
-                    {place.rating.toFixed(1)}
-                  </span>
+                  <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                    {place.category} · {place.location}
+                  </p>
+                  {place.description && (
+                    <p className="text-xs line-clamp-2" style={{ color: 'var(--color-text-muted)', lineHeight: '1.4' }}>
+                      {place.description}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -387,7 +460,9 @@ export default function MapaPage() {
         <MapView
           places={mapPlaces}
           destinos={ALL_MAP_DESTINOS}
+          comercios={ALL_MAP_COMERCIOS}
           selectedId={selectedId}
+          flyToTarget={flyToTarget}
           onSelect={handleSelect}
           onBoundsChange={setMapBounds}
         />
