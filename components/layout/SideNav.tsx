@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation'
 import {
   Compass, MapTrifold, Globe, Heart,
   CaretLeft, CaretRight, X,
-  MapPin, Buildings, Path,
+  MapPin, Buildings, Path, User,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NavItem {
   href: string
@@ -66,6 +67,7 @@ function CollapsibleLabel({
 
 export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClose }: SideNavProps) {
   const pathname = usePathname()
+  const { isLoggedIn } = useAuth()
 
   const isCollapsed = isMobile ? false : collapsed
   const sidebarWidth = isMobile ? 240 : (collapsed ? 64 : 240)
@@ -231,26 +233,36 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
           <Link
             href="/perfil"
             onClick={isMobile ? onMobileClose : undefined}
-            aria-label="Ver perfil"
+            aria-label={isLoggedIn ? 'Ver perfil' : 'Iniciar sesión'}
             aria-current={isActive('/perfil') ? 'page' : undefined}
-            title={isCollapsed ? 'Perfil' : undefined}
+            title={isCollapsed ? (isLoggedIn ? 'Perfil' : 'Iniciar sesión') : undefined}
             style={navItemStyle(isActive('/perfil'))}
             onMouseEnter={e => { if (!isActive('/perfil')) e.currentTarget.style.background = 'var(--color-surface)' }}
             onMouseLeave={e => { e.currentTarget.style.background = isActive('/perfil') ? 'var(--color-crimson-light)' : 'transparent' }}
           >
-            <div
-              className="flex items-center justify-center text-sm font-bold text-white flex-shrink-0 select-none rounded-full"
-              style={{ width: '32px', height: '32px', minWidth: '32px', background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
-              aria-hidden="true"
-            >
-              V
-            </div>
+            {isLoggedIn ? (
+              <div
+                className="flex items-center justify-center text-sm font-bold text-white flex-shrink-0 select-none rounded-full"
+                style={{ width: '32px', height: '32px', minWidth: '32px', background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
+                aria-hidden="true"
+              >
+                V
+              </div>
+            ) : (
+              <div
+                className="flex items-center justify-center flex-shrink-0 rounded-full"
+                style={{ width: '32px', height: '32px', minWidth: '32px', background: 'var(--color-surface)', border: '1.5px solid var(--color-border)' }}
+                aria-hidden="true"
+              >
+                <User size={16} weight="regular" style={{ color: 'var(--color-text-muted)' }} />
+              </div>
+            )}
             <CollapsibleLabel collapsed={isCollapsed}>
               <span className="text-sm font-semibold leading-tight block" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
-                Viajero Aventurero
+                {isLoggedIn ? 'Viajero Aventurero' : 'Iniciar sesión'}
               </span>
               <span className="text-xs block" style={{ color: 'var(--color-text-muted)', marginTop: '-1px' }}>
-                Ver perfil
+                {isLoggedIn ? 'Ver perfil' : 'Accedé a tu cuenta'}
               </span>
             </CollapsibleLabel>
           </Link>

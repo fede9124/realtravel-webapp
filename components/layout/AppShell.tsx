@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { List, AirplaneTilt } from '@phosphor-icons/react'
 import { SideNav } from './SideNav'
+import { AuthContext, useAuthProvider } from '@/hooks/useAuth'
 
 export const SIDEBAR_EXPANDED = 240
 export const SIDEBAR_COLLAPSED = 64
 const MOBILE_HEADER_H = 56
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const auth = useAuthProvider()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -28,6 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sidebarW = isMobile ? 0 : (collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED)
 
   return (
+    <AuthContext.Provider value={auth}>
     <div className="min-h-[100dvh]" style={{ background: 'var(--color-surface)' }}>
 
       {/* Mobile backdrop */}
@@ -113,5 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
     </div>
+    </AuthContext.Provider>
   )
+
 }

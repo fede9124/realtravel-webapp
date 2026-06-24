@@ -11,12 +11,15 @@ import {
 } from '@phosphor-icons/react'
 import { findComercio, findRuta } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { LoginPrompt } from '@/components/ui/LoginPrompt'
 
 export default function ComercioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [claimed, setClaimed] = useState(false)
   const [liked, setLiked] = useState(false)
   const { favorites, toggleFavorite } = useFavorites()
+  const { showLogin, loginMessage, requireAuth, closeLogin } = useRequireAuth()
 
   const comercio = findComercio(id)
   if (!comercio) notFound()
@@ -28,25 +31,27 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
 
       {/* Hero — receptor del morph desde la card */}
       <section
-        className="relative overflow-hidden"
+        className="relative"
         style={{
           height: '40vh', minHeight: '280px', maxHeight: '420px',
           viewTransitionName: `card-${comercio.id}`,
         } as React.CSSProperties}
       >
-        <Image
-          src={comercio.image.replace('w=600', 'w=1400')}
-          alt={comercio.title}
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, rgba(0,0,0,0.55) 100%)' }}
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={comercio.image.replace('w=600', 'w=1400')}
+            alt={comercio.title}
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 40%, rgba(0,0,0,0.55) 100%)' }}
+            aria-hidden="true"
+          />
+        </div>
 
         <TransitionLink
           href="/red-travel"
@@ -72,7 +77,7 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
         )}
 
         {/* Name */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7">
+        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7" style={{ paddingLeft: comercio.logo ? '96px' : undefined }}>
           <p
             className="text-white/75 text-[10px] font-semibold uppercase tracking-widest mb-1"
             style={{ fontFamily: 'var(--font-family-heading)', letterSpacing: '0.12em' }}
@@ -90,10 +95,36 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
             {comercio.title}
           </h1>
         </div>
+
+        {/* Logo circle — overlaps hero bottom edge */}
+        {comercio.logo && (
+          <div
+            className="absolute overflow-hidden"
+            style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '50%',
+              border: '3px solid white',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+              bottom: '-36px',
+              left: '24px',
+              zIndex: 10,
+              background: 'white',
+            }}
+          >
+            <Image
+              src={comercio.logo}
+              alt={`Logo de ${comercio.title}`}
+              fill
+              className="object-cover"
+              sizes="72px"
+            />
+          </div>
+        )}
       </section>
 
       {/* Content */}
-      <div className="px-5 sm:px-8 lg:px-12 w-full">
+      <div className="px-5 sm:px-8 lg:px-12 w-full" style={{ marginTop: comercio.logo ? '28px' : undefined }}>
         <div className={`grid grid-cols-1 ${comercio.benefit ? 'lg:grid-cols-3' : ''} gap-10 py-10`}>
 
           {/* Left — info */}
@@ -188,7 +219,7 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                       ))}
                     </ul>
                     <button
-                      onClick={() => setClaimed(true)}
+                      onClick={() => { if (requireAuth('Iniciá sesión para canjear beneficios')) setClaimed(true) }}
                       disabled={claimed}
                       aria-pressed={claimed}
                       className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:cursor-default"
@@ -223,7 +254,7 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                   </p>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => toggleFavorite(comercio.id)}
+                      onClick={() => { if (requireAuth('Iniciá sesión para guardar comercios')) toggleFavorite(comercio.id) }}
                       aria-pressed={saved}
                       className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer"
                       style={{
@@ -314,6 +345,8 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       )}
+
+      <LoginPrompt open={showLogin} onClose={closeLogin} message={loginMessage} />
     </article>
   )
 }

@@ -1,5 +1,10 @@
-import { CloudArrowDown, GearSix, Gavel, Eye, SignOut, CaretRight, Sun, MapPin } from '@phosphor-icons/react/dist/ssr'
+'use client'
+
+import { CloudArrowDown, GearSix, Gavel, Eye, SignOut, CaretRight, Sun, MapPin, User } from '@phosphor-icons/react'
 import { StatsGrid } from '@/components/perfil/StatsGrid'
+import { useAuth } from '@/hooks/useAuth'
+import { LoginPrompt } from '@/components/ui/LoginPrompt'
+import { useState } from 'react'
 
 const MENU_ITEMS = [
   { icon: CloudArrowDown, label: 'Descargados', description: '3 lugares disponibles offline', href: '/perfil/descargados' },
@@ -9,6 +14,43 @@ const MENU_ITEMS = [
 ]
 
 export default function PerfilPage() {
+  const { isLoggedIn, logout } = useAuth()
+  const [showLogin, setShowLogin] = useState(false)
+
+  if (!isLoggedIn) {
+    return (
+      <div className="px-5 sm:px-8 lg:px-12 pt-14 pb-24 w-full max-w-5xl">
+        <div className="flex flex-col items-center justify-center gap-6 py-20">
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center"
+            style={{ background: 'var(--color-crimson-light)' }}
+          >
+            <User size={40} weight="regular" style={{ color: 'var(--color-crimson)' }} />
+          </div>
+          <div className="text-center">
+            <h1
+              className="text-2xl font-bold mb-2"
+              style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-display)' }}
+            >
+              Mi Perfil
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+              Iniciá sesión para acceder a tu perfil, favoritos guardados y beneficios exclusivos.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowLogin(true)}
+            className="px-8 py-3 rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98]"
+            style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
+          >
+            Iniciar sesión
+          </button>
+          <LoginPrompt open={showLogin} onClose={() => setShowLogin(false)} message="Iniciá sesión para ver tu perfil" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-5 sm:px-8 lg:px-12 pt-14 pb-24 w-full max-w-5xl">
       <div className="mb-10">
@@ -105,6 +147,7 @@ export default function PerfilPage() {
 
           {/* Logout */}
           <button
+            onClick={logout}
             className="flex items-center gap-4 w-full px-6 py-[18px] rounded-2xl transition-colors hover-crimson-light"
             style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
             aria-label="Cerrar sesión"

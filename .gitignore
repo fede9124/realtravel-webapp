@@ -33,3 +33,6 @@ next-env.d.ts
 
 # Playwright CLI session artifacts
 .playwright-cli/
+
+# Claude Code local config
+.claude/
