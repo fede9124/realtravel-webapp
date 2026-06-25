@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
+import { useNearby, haversineKm } from '@/hooks/useNearby'
 import { LUGARES } from '@/lib/data'
 import { useFilters, TaxonomyChips, TaxonomyModal, applyTaxonomyFilters } from '@/components/ui/TaxonomyFilters'
 
@@ -18,6 +19,7 @@ export default function LugaresPage() {
   const { favorites, toggleFavorite } = useFavorites()
   const revealRef = useScrollReveal()
   const filters = useFilters()
+  const { userCoords, nearbyMode, nearbyLoading, toggleNearby } = useNearby()
 
   const filtered = useMemo(() => {
     let matched = applyTaxonomyFilters(LUGARES, filters.state)
@@ -25,8 +27,18 @@ export default function LugaresPage() {
       const q = norm(query.trim())
       matched = matched.filter(l => norm(`${l.title} ${l.location} ${l.category}`).includes(q))
     }
+    if (nearbyMode && userCoords) {
+      matched = [...matched].sort((a, b) => {
+        if (a.lat === undefined || a.lng === undefined) return 1
+        if (b.lat === undefined || b.lng === undefined) return -1
+        return (
+          haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) -
+          haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng)
+        )
+      })
+    }
     return matched
-  }, [query, filters.state])
+  }, [query, filters.state, nearbyMode, userCoords])
 
   return (
     <div ref={revealRef} className="w-full pb-24">
@@ -75,8 +87,13 @@ export default function LugaresPage() {
           state={filters.state}
           setCategoria={filters.setCategoria}
           setTipoPunto={filters.setTipoPunto}
+          setPais={filters.setPais}
+          setCiudad={filters.setCiudad}
           activeCount={filters.activeCount}
           onOpenModal={() => setShowModal(true)}
+          onNearby={toggleNearby}
+          nearbyActive={nearbyMode}
+          nearbyLoading={nearbyLoading}
         />
       </div>
 

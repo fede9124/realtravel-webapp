@@ -7,10 +7,10 @@ import type { MapPlace, MapDestino, MapComercio } from '@/app/mapa/page'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Two zoom layers: destinos (world/continental, zoom < 13) → lugares + comercios (city, zoom ≥ 13)
-const DESTINO_MAX_ZOOM = 13
-const PLACE_MIN_ZOOM = 13
-const COMERCIO_MIN_ZOOM = 13
+// Two zoom layers: destinos (world/continental, zoom < 12) → lugares + comercios (city, zoom ≥ 12)
+const DESTINO_MAX_ZOOM = 12
+const PLACE_MIN_ZOOM = 12
+const COMERCIO_MIN_ZOOM = 12
 
 const OPACITY_TRANSITION = 'opacity 350ms ease'
 
@@ -75,6 +75,7 @@ function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement
 
   const inner = document.createElement('div')
   inner.style.cssText = `
+    position:relative;
     width:${size}px;height:${size}px;border-radius:50%;
     background:white;border:2.5px solid ${color};
     display:flex;align-items:center;justify-content:center;
@@ -86,11 +87,16 @@ function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement
   inner.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none">${icon}</svg>`
   inner.dataset.baseColor = color
 
+  const label = createHoverLabel(place.title)
+  inner.appendChild(label)
+
   el.addEventListener('mouseenter', () => {
     if (!el.dataset.selected) inner.style.transform = 'scale(1.2)'
+    label.style.opacity = '1'
   })
   el.addEventListener('mouseleave', () => {
     if (!el.dataset.selected) inner.style.transform = 'scale(1)'
+    label.style.opacity = '0'
   })
   el.addEventListener('click', onSelect)
 
@@ -109,7 +115,7 @@ function createDestinoPinEl(destino: MapDestino): HTMLElement {
   el.dataset.layer = 'destino'
 
   const wrapper = document.createElement('div')
-  wrapper.style.cssText = `width:44px;height:52px;display:flex;flex-direction:column;align-items:center;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
+  wrapper.style.cssText = `position:relative;width:44px;height:52px;display:flex;flex-direction:column;align-items:center;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
 
   const circle = document.createElement('div')
   circle.style.cssText = `
@@ -131,15 +137,20 @@ function createDestinoPinEl(destino: MapDestino): HTMLElement {
     pointer-events:none;
   `
 
+  const label = createHoverLabel(destino.title, -34)
+
   el.addEventListener('mouseenter', () => {
     circle.style.transform = 'scale(1.1)'
     circle.style.boxShadow = '0 5px 20px rgba(196,18,48,0.45)'
+    label.style.opacity = '1'
   })
   el.addEventListener('mouseleave', () => {
     circle.style.transform = 'scale(1)'
     circle.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)'
+    label.style.opacity = '0'
   })
 
+  wrapper.appendChild(label)
   wrapper.appendChild(circle)
   wrapper.appendChild(tip)
   el.appendChild(wrapper)
@@ -159,6 +170,7 @@ function createComercioMarkerEl(comercio: MapComercio, onSelect: () => void): HT
 
   const inner = document.createElement('div')
   inner.style.cssText = `
+    position:relative;
     width:${size}px;height:${size}px;border-radius:50%;
     background:white;border:2.5px solid #EA580C;
     display:flex;align-items:center;justify-content:center;
@@ -170,12 +182,32 @@ function createComercioMarkerEl(comercio: MapComercio, onSelect: () => void): HT
   inner.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none">${ICON_SHOP}</svg>`
   inner.dataset.baseColor = '#EA580C'
 
-  el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.2)' })
-  el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)' })
+  const label = createHoverLabel(comercio.title)
+  inner.appendChild(label)
+
+  el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.2)'; label.style.opacity = '1' })
+  el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)'; label.style.opacity = '0' })
   el.addEventListener('click', onSelect)
 
   el.appendChild(inner)
   return el
+}
+
+// ── Hover label — small floating name tag shown above a marker icon ──────────
+
+function createHoverLabel(text: string, topOffset = -8): HTMLElement {
+  const label = document.createElement('div')
+  label.textContent = text
+  label.style.cssText = `
+    position:absolute;top:${topOffset}px;left:50%;transform:translate(-50%,-100%);
+    white-space:nowrap;background:white;color:#1a1a1a;
+    font-size:11px;font-weight:600;font-family:inherit;
+    padding:4px 9px;border-radius:8px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    opacity:0;pointer-events:none;transition:opacity 150ms ease;
+    z-index:10;
+  `
+  return label
 }
 
 // ── User location dot ─────────────────────────────────────────────────────────
@@ -245,8 +277,8 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => {
-          // Guard: map may have been removed before callback fires
-          if (!mapRef.current) return
+          // Guard: this exact map instance may have been removed (e.g. StrictMode double-effect) before callback fires
+          if (mapRef.current !== map) return
           const center: [number, number] = [pos.coords.longitude, pos.coords.latitude]
           map.flyTo({ center, zoom: 11, duration: 1800, essential: true })
           new mapboxgl.Marker({ element: createUserMarkerEl() })
@@ -263,6 +295,10 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left')
 
     map.on('load', () => {
+      // Guard: ignore a late 'load' from an instance already replaced/removed (e.g. StrictMode double-effect),
+      // otherwise it can flip mapLoaded=true for a newer map whose canvas/style isn't ready yet, crashing marker.addTo()
+      if (mapRef.current !== map) return
+
       // Remove visual noise
       for (const layerId of ['poi-label', 'settlement-subdivision-label']) {
         if (map.getLayer(layerId)) {
@@ -376,7 +412,7 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     }
   }, [comercios, mapLoaded])
 
-  // ── Selected highlight + flyTo ────────────────────────────────────────────
+  // ── Selected highlight + camera move ───────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapLoaded) return
@@ -388,9 +424,10 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     if (selectedId) {
       const place = places.find(p => p.id === selectedId)
       if (place) {
-        map.flyTo({
+        // easeTo (not flyTo) — short same-city moves shouldn't arc the camera out and back in
+        map.easeTo({
           center: [place.lng, place.lat],
-          zoom: Math.max(map.getZoom(), 13),
+          zoom: Math.max(map.getZoom(), 12),
           duration: 800,
         })
       }
@@ -413,7 +450,7 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
       const wrapper = el.firstElementChild as HTMLElement
       if (showDestinos) { wrapper.style.opacity = '1'; wrapper.style.pointerEvents = 'auto' }
       el.addEventListener('click', () => {
-        map.flyTo({ center: [destino.lng, destino.lat], zoom: 10, duration: 1200, essential: true })
+        map.flyTo({ center: [destino.lng, destino.lat], zoom: 12, duration: 1200, essential: true })
       })
 
       // anchor:'bottom' places the pin tip exactly at the coordinate
@@ -436,7 +473,8 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     if (!map || !mapLoaded || !flyToTarget) return
     map.flyTo({
       center: [flyToTarget.lng, flyToTarget.lat],
-      zoom: flyToTarget.zoom ?? Math.max(map.getZoom(), 13),
+      zoom: flyToTarget.zoom ?? Math.max(map.getZoom(), 12),
+      minZoom: PLACE_MIN_ZOOM,
       duration: 1000,
       essential: true,
     })

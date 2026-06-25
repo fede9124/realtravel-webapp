@@ -77,6 +77,8 @@ export interface Lugar {
   tag_servicios?: string[]
   tag_actividades?: string[]
   tag_culturas?: string[]
+  pais?: string
+  ciudad?: string
 }
 
 export interface Destino {
@@ -1698,6 +1700,53 @@ for (const l of LUGARES) {
   const t = _TAX[l.id]
   if (t) Object.assign(l, t)
 }
+
+// ─── Derivar pais y ciudad desde location ────────────────────────────────────
+
+const _KNOWN_COUNTRIES = new Set(['España', 'Italia', 'Perú', 'Japón', 'Tailandia', 'Países Bajos', 'Portugal', 'Singapur'])
+
+const _CITY_OVERRIDE: Record<string, { pais: string; ciudad: string }> = {
+  'santa-gemma':     { pais: 'España', ciudad: 'Madrid' },
+  'plaza-mayor':     { pais: 'España', ciudad: 'Madrid' },
+  'sagrada-familia': { pais: 'España', ciudad: 'Barcelona' },
+  'alhambra':        { pais: 'España', ciudad: 'Granada' },
+  'arco':            { pais: 'España', ciudad: 'Barcelona' },
+}
+
+for (const l of LUGARES) {
+  const ov = _CITY_OVERRIDE[l.id]
+  if (ov) { l.pais = ov.pais; l.ciudad = ov.ciudad; continue }
+
+  const parts = l.location.split(', ')
+  const last = parts[parts.length - 1]
+
+  if (parts.length >= 2 && _KNOWN_COUNTRIES.has(last)) {
+    l.pais = last
+    l.ciudad = parts[0]
+  } else if (_KNOWN_COUNTRIES.has(l.location)) {
+    l.pais = l.location
+    l.ciudad = l.location === 'Singapur' ? 'Singapur' : undefined
+  } else if (last === 'Cusco') {
+    l.pais = 'Perú'; l.ciudad = 'Cusco'
+  } else if (last === 'Kyoto') {
+    l.pais = 'Japón'; l.ciudad = 'Kyoto'
+  } else if (last === 'Venecia') {
+    l.pais = 'Italia'; l.ciudad = 'Venecia'
+  } else {
+    l.pais = l.location
+  }
+}
+
+export const PAISES = [...new Set(LUGARES.map(l => l.pais).filter(Boolean))] as string[]
+PAISES.sort((a, b) => a!.localeCompare(b!))
+
+export const CIUDADES_POR_PAIS: Record<string, string[]> = {}
+for (const l of LUGARES) {
+  if (!l.pais || !l.ciudad) continue
+  const arr = CIUDADES_POR_PAIS[l.pais] ??= []
+  if (!arr.includes(l.ciudad)) arr.push(l.ciudad)
+}
+for (const arr of Object.values(CIUDADES_POR_PAIS)) arr.sort((a, b) => a.localeCompare(b))
 
 // ─── Destinos (10 totales: 5 existentes + 5 nuevos) ─────────────────────────────
 

@@ -1,26 +1,37 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Path, ArrowLeft, MapPin, Globe } from '@phosphor-icons/react'
+import { Path, ArrowLeft } from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { RouteCard } from '@/components/ui/RouteCard'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { RUTAS, findDestino } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
+import { SingleChip, FilterGroup, FiltrosButton, FilterModal, DropdownFilter } from '@/components/ui/TaxonomyFilters'
 
-const ALL_DESTINOS = ['Todos', ...Array.from(new Set(RUTAS.map(r => r.destinoId)))]
+const DIFICULTADES = ['Fácil', 'Moderada', 'Desafiante'] as const
+
+const DESTINO_OPTIONS = [...new Set(RUTAS.map(r => r.destinoId))]
+  .map(id => ({ value: id, label: findDestino(id)?.title ?? id }))
+  .sort((a, b) => a.label.localeCompare(b.label))
+
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 export default function RutasPage() {
   const [query, setQuery] = useState('')
-  const [activeDestino, setActiveDestino] = useState('Todos')
+  const [destinoId, setDestinoId] = useState<string | null>(null)
+  const [dificultad, setDificultad] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const revealRef = useScrollReveal()
   const { favorites, toggleFavorite } = useFavorites()
 
+  const activeCount = (destinoId ? 1 : 0) + (dificultad ? 1 : 0)
+
   const filtered = useMemo(() => {
     return RUTAS.filter(r => {
-      if (activeDestino !== 'Todos' && r.destinoId !== activeDestino) return false
+      if (destinoId && r.destinoId !== destinoId) return false
+      if (dificultad && r.difficulty !== dificultad) return false
       if (query.trim()) {
         const destino = findDestino(r.destinoId)
         const hay = norm(`${r.title} ${r.description} ${destino?.title ?? ''}`)
@@ -28,7 +39,9 @@ export default function RutasPage() {
       }
       return true
     })
-  }, [query, activeDestino])
+  }, [query, destinoId, dificultad])
+
+  const clearAll = () => { setDestinoId(null); setDificultad(null) }
 
   return (
     <div ref={revealRef} className="w-full pb-24">
@@ -68,37 +81,63 @@ export default function RutasPage() {
         </div>
       </div>
 
-      {/* Destino filters + search */}
+      {/* Filters */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="50">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex gap-2 overflow-x-auto scroll-hide flex-1">
-            {ALL_DESTINOS.map(did => {
-              const isActive = activeDestino === did
-              const label = did === 'Todos' ? 'Todos' : (findDestino(did)?.title ?? did)
-              const DestIcon = did === 'Todos' ? Globe : MapPin
-              return (
-                <button
-                  key={did}
-                  onClick={() => setActiveDestino(did)}
-                  aria-pressed={isActive}
-                  className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
-                  style={{
-                    background: isActive ? 'var(--color-crimson)' : 'var(--color-surface)',
-                    color: isActive ? 'white' : 'var(--color-text-muted)',
-                    border: isActive ? 'none' : '1px solid var(--color-border)',
-                  }}
-                >
-                  <DestIcon size={11} aria-hidden="true" />
-                  {label}
-                </button>
-              )
-            })}
+        <div className="mb-4">
+          <SearchBar value={query} onChange={setQuery} placeholder="Buscar rutas..." />
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {/* Primary row: destino dropdown + filter button */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <DropdownFilter label="Destino" value={destinoId} options={DESTINO_OPTIONS} onSelect={setDestinoId} />
+            <FiltrosButton activeCount={activeCount} onClick={() => setShowModal(true)} />
           </div>
-          <div className="sm:w-64">
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar rutas..." />
+
+          {/* Dificultad row */}
+          <div className="flex gap-1.5 overflow-x-auto scroll-hide">
+            {DIFICULTADES.map(d => (
+              <SingleChip
+                key={d}
+                label={d}
+                active={dificultad === d}
+                onClick={() => setDificultad(dificultad === d ? null : d)}
+              />
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Filter modal */}
+      {showModal && (
+        <FilterModal
+          activeCount={activeCount}
+          resultCount={filtered.length}
+          onClose={() => setShowModal(false)}
+          onClear={clearAll}
+        >
+          <FilterGroup title="Destino">
+            {DESTINO_OPTIONS.map(opt => (
+              <SingleChip
+                key={opt.value}
+                label={opt.label}
+                active={destinoId === opt.value}
+                onClick={() => setDestinoId(destinoId === opt.value ? null : opt.value)}
+              />
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="Dificultad">
+            {DIFICULTADES.map(d => (
+              <SingleChip
+                key={d}
+                label={d}
+                active={dificultad === d}
+                onClick={() => setDificultad(dificultad === d ? null : d)}
+              />
+            ))}
+          </FilterGroup>
+        </FilterModal>
+      )}
 
       {/* Grid */}
       <div className="px-5 sm:px-8 lg:px-12">
@@ -111,6 +150,15 @@ export default function RutasPage() {
             <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
               No hay rutas que coincidan
             </p>
+            {activeCount > 0 && (
+              <button
+                onClick={clearAll}
+                className="px-5 py-2 rounded-xl text-sm font-medium transition-colors"
+                style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>

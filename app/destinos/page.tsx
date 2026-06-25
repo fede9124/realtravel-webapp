@@ -10,35 +10,45 @@ import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
 import { DESTINOS } from '@/lib/data'
+import { SingleChip, FilterGroup, FiltrosButton, FilterModal } from '@/components/ui/TaxonomyFilters'
 
-const ALL_MOODS = ['Todos', 'aventura', 'historia', 'cultura', 'relajo', 'gastronomia', 'naturaleza', 'moderno']
+const MOODS = ['aventura', 'historia', 'cultura', 'relajo', 'gastronomia', 'naturaleza', 'moderno']
 const MOOD_LABELS: Record<string, string> = {
-  todos: 'Todos', aventura: 'Aventura', historia: 'Historia', cultura: 'Cultura',
+  aventura: 'Aventura', historia: 'Historia', cultura: 'Cultura',
   relajo: 'Relajo', gastronomia: 'Gastronomía', naturaleza: 'Naturaleza', moderno: 'Moderno',
 }
 const MOOD_ICONS: Record<string, Icon> = {
-  todos: Globe, aventura: Mountains, historia: Bank, cultura: Palette,
+  aventura: Mountains, historia: Bank, cultura: Palette,
   relajo: Waves, gastronomia: ForkKnife, naturaleza: Tent, moderno: Buildings,
 }
+
+const PAISES = [...new Set(DESTINOS.map(d => d.country))].sort((a, b) => a.localeCompare(b))
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 export default function DestinosPage() {
   const [query, setQuery] = useState('')
-  const [activeMood, setActiveMood] = useState('Todos')
+  const [mood, setMood] = useState<string | null>(null)
+  const [pais, setPais] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const { favorites, toggleFavorite } = useFavorites()
   const revealRef = useScrollReveal()
 
+  const activeCount = (mood ? 1 : 0) + (pais ? 1 : 0)
+
   const filtered = useMemo(() => {
     return DESTINOS.filter(d => {
-      if (activeMood !== 'Todos' && !d.moods.includes(activeMood)) return false
+      if (mood && !d.moods.includes(mood)) return false
+      if (pais && d.country !== pais) return false
       if (query.trim()) {
         const hay = norm(`${d.title} ${d.location} ${d.country}`)
         if (!hay.includes(norm(query.trim()))) return false
       }
       return true
     })
-  }, [query, activeMood])
+  }, [query, mood, pais])
+
+  const clearAll = () => { setMood(null); setPais(null) }
 
   return (
     <div ref={revealRef} className="w-full pb-24">
@@ -78,37 +88,73 @@ export default function DestinosPage() {
         </div>
       </div>
 
-      {/* Mood filters */}
+      {/* Filters */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="50">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex gap-2 overflow-x-auto scroll-hide flex-1">
-            {ALL_MOODS.map(mood => {
-              const key = mood.toLowerCase()
-              const isActive = activeMood === mood
-              const MoodIcon = MOOD_ICONS[key]
+        <div className="mb-4">
+          <SearchBar value={query} onChange={setQuery} placeholder="Buscar destinos..." />
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {/* Primary row: filter button */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <FiltrosButton activeCount={activeCount} onClick={() => setShowModal(true)} />
+          </div>
+
+          {/* Mood row */}
+          <div className="flex gap-1.5 overflow-x-auto scroll-hide">
+            {MOODS.map(m => {
+              const MoodIcon = MOOD_ICONS[m]
               return (
                 <button
-                  key={mood}
-                  onClick={() => setActiveMood(mood)}
-                  aria-pressed={isActive}
-                  className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+                  key={m}
+                  onClick={() => setMood(mood === m ? null : m)}
+                  aria-pressed={mood === m}
+                  className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 active:scale-95"
                   style={{
-                    background: isActive ? 'var(--color-crimson)' : 'var(--color-surface)',
-                    color: isActive ? 'white' : 'var(--color-text-muted)',
-                    border: isActive ? 'none' : '1px solid var(--color-border)',
+                    background: mood === m ? 'var(--color-crimson)' : 'var(--color-surface)',
+                    color: mood === m ? 'white' : 'var(--color-text-muted)',
+                    border: mood === m ? 'none' : '1px solid var(--color-border)',
                   }}
                 >
                   {MoodIcon && <MoodIcon size={11} aria-hidden="true" />}
-                  {MOOD_LABELS[key] ?? mood}
+                  {MOOD_LABELS[m]}
                 </button>
               )
             })}
           </div>
-          <div className="sm:w-64">
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar destinos..." />
-          </div>
         </div>
       </div>
+
+      {/* Filter modal */}
+      {showModal && (
+        <FilterModal
+          activeCount={activeCount}
+          resultCount={filtered.length}
+          onClose={() => setShowModal(false)}
+          onClear={clearAll}
+        >
+          <FilterGroup title="Mood">
+            {MOODS.map(m => (
+              <SingleChip
+                key={m}
+                label={MOOD_LABELS[m]}
+                active={mood === m}
+                onClick={() => setMood(mood === m ? null : m)}
+              />
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="País">
+            {PAISES.map(p => (
+              <SingleChip
+                key={p}
+                label={p}
+                active={pais === p}
+                onClick={() => setPais(pais === p ? null : p)}
+              />
+            ))}
+          </FilterGroup>
+        </FilterModal>
+      )}
 
       {/* Grid */}
       <div className="px-5 sm:px-8 lg:px-12">
@@ -121,6 +167,15 @@ export default function DestinosPage() {
             <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
               No hay destinos que coincidan
             </p>
+            {activeCount > 0 && (
+              <button
+                onClick={clearAll}
+                className="px-5 py-2 rounded-xl text-sm font-medium transition-colors"
+                style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>

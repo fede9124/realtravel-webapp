@@ -7,6 +7,7 @@ import {
   TIPOS_POR_CATEGORIA, TAGS_POR_TIPO,
   TAG_ACCESIBILIDAD_VALUES, TAG_SERVICIOS_VALUES,
   TAG_ACTIVIDADES_VALUES, TAG_CULTURAS_VALUES,
+  PAISES, CIUDADES_POR_PAIS,
   type Categoria,
 } from '@/lib/data'
 
@@ -20,12 +21,15 @@ export interface TaxonomyState {
   tag_servicios: string[]
   tag_actividades: string[]
   tag_culturas: string[]
+  pais: string | null
+  ciudad: string | null
 }
 
 const EMPTY: TaxonomyState = {
   categoria: null, identidad: null, entorno: null, tipo_punto: null,
   tags_opcionales: [], tag_accesibilidad: [], tag_servicios: [],
   tag_actividades: [], tag_culturas: [],
+  pais: null, ciudad: null,
 }
 
 export function useFilters() {
@@ -47,6 +51,14 @@ export function useFilters() {
     setState(s => ({ ...s, tipo_punto: v, tags_opcionales: [] }))
   }, [])
 
+  const setPais = useCallback((v: string | null) => {
+    setState(s => ({ ...s, pais: v, ciudad: null }))
+  }, [])
+
+  const setCiudad = useCallback((v: string | null) => {
+    setState(s => ({ ...s, ciudad: v }))
+  }, [])
+
   const toggleMulti = useCallback((field: keyof TaxonomyState, value: string) => {
     setState(s => {
       const arr = s[field] as string[]
@@ -62,6 +74,8 @@ export function useFilters() {
     if (state.identidad) c++
     if (state.entorno) c++
     if (state.tipo_punto) c++
+    if (state.pais) c++
+    if (state.ciudad) c++
     c += state.tags_opcionales.length
     c += state.tag_accesibilidad.length
     c += state.tag_servicios.length
@@ -72,12 +86,12 @@ export function useFilters() {
 
   const hasFilters = activeCount > 0
 
-  return { state, setCategoria, setIdentidad, setEntorno, setTipoPunto, toggleMulti, clearAll, activeCount, hasFilters }
+  return { state, setCategoria, setIdentidad, setEntorno, setTipoPunto, setPais, setCiudad, toggleMulti, clearAll, activeCount, hasFilters }
 }
 
 // ─── Chip components ─────────────────────────────────────────────────────────
 
-function SingleChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+export function SingleChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -94,7 +108,7 @@ function SingleChip({ label, active, onClick }: { label: string; active: boolean
   )
 }
 
-function MultiChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+export function MultiChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -111,7 +125,7 @@ function MultiChip({ label, active, onClick }: { label: string; active: boolean;
   )
 }
 
-function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+export function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-4">
       <p
@@ -127,39 +141,251 @@ function FilterGroup({ title, children }: { title: string; children: React.React
   )
 }
 
+// ─── Dropdown button for inline filters ─────────────────────────────────────
+
+export interface DropdownOption {
+  value: string
+  label: string
+}
+
+export function DropdownFilter({
+  label,
+  value,
+  options,
+  onSelect,
+}: {
+  label: string
+  value: string | null
+  options: DropdownOption[]
+  onSelect: (v: string | null) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const active = value !== null
+  const selectedLabel = options.find(o => o.value === value)?.label
+
+  return (
+    <div className="relative flex-shrink-0">
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-pressed={active}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+        style={{
+          background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
+          color: active ? 'white' : 'var(--color-text-muted)',
+          border: active ? 'none' : '1px solid var(--color-border)',
+        }}
+      >
+        <CaretDown size={10} weight="bold" aria-hidden="true" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        {selectedLabel ?? label}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div
+            className="absolute left-0 top-full mt-1.5 rounded-xl overflow-hidden z-20"
+            style={{ background: 'var(--color-card)', boxShadow: '0 12px 32px rgba(0,0,0,0.18)', border: '1px solid var(--color-border)', minWidth: '180px' }}
+          >
+            <button
+              onClick={() => { onSelect(null); setOpen(false) }}
+              className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+              style={{
+                color: !active ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                fontWeight: !active ? 600 : 400,
+                borderBottom: '1px solid var(--color-border)',
+              }}
+            >
+              Todos
+            </button>
+            {options.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => { onSelect(opt.value); setOpen(false) }}
+                className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+                style={{
+                  color: value === opt.value ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                  fontWeight: value === opt.value ? 600 : 400,
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Filtros button (opens modal) ────────────────────────────────────────────
+
+export function FiltrosButton({ activeCount, onClick }: { activeCount: number; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Abrir más filtros"
+      className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer"
+      style={{
+        background: activeCount > 0 ? 'var(--color-crimson)' : 'var(--color-surface)',
+        color: activeCount > 0 ? 'white' : 'var(--color-text-muted)',
+        border: activeCount > 0 ? 'none' : '1px solid var(--color-border)',
+      }}
+    >
+      <SlidersHorizontal size={12} aria-hidden="true" />
+      Filtros
+      {activeCount > 0 && (
+        <span
+          className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+          style={{ background: 'rgba(255,255,255,0.25)' }}
+        >
+          {activeCount}
+        </span>
+      )}
+    </button>
+  )
+}
+
+// ─── Generic filter modal shell (header/body/footer) ─────────────────────────
+
+export function FilterModal({
+  title = 'Filtros',
+  activeCount,
+  resultCount,
+  onClose,
+  onClear,
+  children,
+}: {
+  title?: string
+  activeCount: number
+  resultCount: number
+  onClose: () => void
+  onClear: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full sm:max-w-lg max-h-[85vh] rounded-t-2xl sm:rounded-2xl flex flex-col"
+        style={{ background: 'var(--color-card)', boxShadow: '0 24px 64px rgba(0,0,0,0.22)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+          <div className="flex items-center gap-2">
+            <FunnelSimple size={16} style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+            <h2 className="font-bold text-base" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+              {title}
+            </h2>
+            {activeCount > 0 && (
+              <span
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: 'var(--color-crimson)', color: 'white' }}
+              >
+                {activeCount} activos
+              </span>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Cerrar filtros"
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+            style={{ color: 'var(--color-text-muted)', background: 'var(--color-surface)' }}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {children}
+        </div>
+
+        <div className="flex items-center gap-3 px-5 py-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+          {activeCount > 0 && (
+            <button
+              onClick={onClear}
+              className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
+            >
+              Limpiar todo
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+            style={{ background: 'var(--color-crimson)' }}
+          >
+            Ver {resultCount} resultado{resultCount !== 1 ? 's' : ''}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Inline filters (always visible) ─────────────────────────────────────────
 
 export function TaxonomyChips({
   state,
   setCategoria,
   setTipoPunto,
+  setPais,
+  setCiudad,
   activeCount,
   onOpenModal,
+  onNearby,
+  nearbyActive,
+  nearbyLoading,
 }: {
   state: TaxonomyState
   setCategoria: (v: string | null) => void
   setTipoPunto: (v: string | null) => void
+  setPais: (v: string | null) => void
+  setCiudad: (v: string | null) => void
   activeCount: number
   onOpenModal: () => void
+  onNearby?: () => void
+  nearbyActive?: boolean
+  nearbyLoading?: boolean
 }) {
   const tipoOptions = state.categoria
     ? TIPOS_POR_CATEGORIA[state.categoria as Categoria] ?? []
     : []
 
+  const ciudadOptions = state.pais
+    ? CIUDADES_POR_PAIS[state.pais] ?? []
+    : []
+
   return (
     <div className="flex flex-col gap-2.5">
-      {/* Primary row: categorías + filter button */}
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1.5 overflow-x-auto scroll-hide flex-1">
-          {CATEGORIAS.map(cat => (
-            <SingleChip
-              key={cat}
-              label={cat}
-              active={state.categoria === cat}
-              onClick={() => setCategoria(state.categoria === cat ? null : cat)}
-            />
-          ))}
-        </div>
+      {/* Primary row: location dropdowns + filter button */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {onNearby && (
+          <button
+            onClick={onNearby}
+            aria-pressed={nearbyActive}
+            disabled={nearbyLoading}
+            className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+            style={{
+              background: nearbyActive ? 'var(--color-crimson)' : 'var(--color-surface)',
+              color: nearbyActive ? 'white' : 'var(--color-crimson)',
+              border: nearbyActive ? 'none' : '1px solid var(--color-crimson)',
+              opacity: nearbyLoading ? 0.6 : 1,
+            }}
+          >
+            {nearbyLoading ? 'Localizando…' : 'Cerca de mí'}
+          </button>
+        )}
+
+        <DropdownFilter label="País" value={state.pais} options={PAISES.map(p => ({ value: p, label: p }))} onSelect={setPais} />
+
+        {ciudadOptions.length > 1 && (
+          <DropdownFilter label="Ciudad" value={state.ciudad} options={ciudadOptions.map(c => ({ value: c, label: c }))} onSelect={setCiudad} />
+        )}
+
         <button
           onClick={onOpenModal}
           aria-label="Abrir más filtros"
@@ -181,6 +407,18 @@ export function TaxonomyChips({
             </span>
           )}
         </button>
+      </div>
+
+      {/* Category row */}
+      <div className="flex gap-1.5 overflow-x-auto scroll-hide">
+        {CATEGORIAS.map(cat => (
+          <SingleChip
+            key={cat}
+            label={cat}
+            active={state.categoria === cat}
+            onClick={() => setCategoria(state.categoria === cat ? null : cat)}
+          />
+        ))}
       </div>
 
       {/* Dependent row: tipo_punto (only when a categoría is selected) */}
@@ -208,6 +446,8 @@ export function TaxonomyModal({
   setIdentidad,
   setEntorno,
   setTipoPunto,
+  setPais,
+  setCiudad,
   toggleMulti,
   clearAll,
   activeCount,
@@ -219,6 +459,8 @@ export function TaxonomyModal({
   setIdentidad: (v: string | null) => void
   setEntorno: (v: string | null) => void
   setTipoPunto: (v: string | null) => void
+  setPais: (v: string | null) => void
+  setCiudad: (v: string | null) => void
   toggleMulti: (field: keyof TaxonomyState, value: string) => void
   clearAll: () => void
   activeCount: number
@@ -335,6 +577,32 @@ export function TaxonomyModal({
               />
             ))}
           </FilterGroup>
+
+          {/* País */}
+          <FilterGroup title="País">
+            {PAISES.map(p => (
+              <SingleChip
+                key={p}
+                label={p}
+                active={state.pais === p}
+                onClick={() => setPais(state.pais === p ? null : p)}
+              />
+            ))}
+          </FilterGroup>
+
+          {/* Ciudad (dependent on país) */}
+          {state.pais && (CIUDADES_POR_PAIS[state.pais]?.length ?? 0) > 0 && (
+            <FilterGroup title={`Ciudad · ${state.pais}`}>
+              {(CIUDADES_POR_PAIS[state.pais] ?? []).map(c => (
+                <SingleChip
+                  key={c}
+                  label={c}
+                  active={state.ciudad === c}
+                  onClick={() => setCiudad(state.ciudad === c ? null : c)}
+                />
+              ))}
+            </FilterGroup>
+          )}
 
           {/* Transversal: Accesibilidad */}
           <CollapsibleGroup title="Accesibilidad">
@@ -458,12 +726,16 @@ export function applyTaxonomyFilters<T extends {
   tag_servicios?: string[]
   tag_actividades?: string[]
   tag_culturas?: string[]
+  pais?: string | null
+  ciudad?: string | null
 }>(items: T[], filters: TaxonomyState): T[] {
   return items.filter(item => {
     if (filters.categoria && item.categoria !== filters.categoria) return false
     if (filters.identidad && item.identidad !== filters.identidad) return false
     if (filters.entorno && item.entorno !== filters.entorno) return false
     if (filters.tipo_punto && item.tipo_punto !== filters.tipo_punto) return false
+    if (filters.pais && item.pais !== filters.pais) return false
+    if (filters.ciudad && item.ciudad !== filters.ciudad) return false
 
     if (filters.tags_opcionales.length > 0) {
       const itemTags = item.tags_opcionales ?? []

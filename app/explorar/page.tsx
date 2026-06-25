@@ -13,6 +13,7 @@ import { Tabs } from '@/components/ui/Tabs'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
+import { useNearby, haversineKm } from '@/hooks/useNearby'
 import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findDestino as findDest } from '@/lib/data'
 import { useFilters, TaxonomyChips, TaxonomyModal, applyTaxonomyFilters } from '@/components/ui/TaxonomyFilters'
 
@@ -23,14 +24,6 @@ const DESTINOS = ALL_DESTINOS
 const MAX_ITEMS = 50
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
 
 // ─── Carousel ─────────────────────────────────────────────────────────────────
 
@@ -186,18 +179,10 @@ export default function ExplorarPage() {
   const [activeTab, setActiveTab] = useState<'lugares' | 'destinos' | 'rutas'>('lugares')
   const [query, setQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const { favorites, toggleFavorite } = useFavorites()
   const revealRef = useScrollReveal()
   const filters = useFilters()
-
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      pos => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { timeout: 6000 }
-    )
-  }, [])
+  const { userCoords, nearbyMode, nearbyLoading, toggleNearby } = useNearby()
 
   const hasActiveFilters = query.trim() !== '' || filters.hasFilters
 
@@ -207,7 +192,7 @@ export default function ExplorarPage() {
       const q = norm(query.trim())
       matched = matched.filter(l => norm(`${l.title} ${l.location} ${l.category}`).includes(q))
     }
-    if (userCoords) {
+    if (nearbyMode && userCoords) {
       matched.sort((a, b) => {
         const da = (typeof a.lat === 'number' && typeof a.lng === 'number')
           ? haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) : Infinity
@@ -219,7 +204,7 @@ export default function ExplorarPage() {
       matched.sort((a, b) => (b.importance ?? 0) - (a.importance ?? 0))
     }
     return matched
-  }, [query, filters.state, userCoords])
+  }, [query, filters.state, nearbyMode, userCoords])
 
   const filteredDestinos = useMemo(() => {
     if (query.trim() === '') return DESTINOS
@@ -277,8 +262,13 @@ export default function ExplorarPage() {
           state={filters.state}
           setCategoria={filters.setCategoria}
           setTipoPunto={filters.setTipoPunto}
+          setPais={filters.setPais}
+          setCiudad={filters.setCiudad}
           activeCount={filters.activeCount}
           onOpenModal={() => setShowModal(true)}
+          onNearby={toggleNearby}
+          nearbyActive={nearbyMode}
+          nearbyLoading={nearbyLoading}
         />
       </div>
 
