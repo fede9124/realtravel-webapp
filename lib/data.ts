@@ -3,6 +3,52 @@
 
 export type ItemKind = 'lugar' | 'destino' | 'comercio'
 
+// ─── Taxonomía ───────────────────────────────────────────────────────────────
+
+export const CATEGORIAS = ['Naturaleza y Paisaje', 'Cultura y Patrimonio', 'Tradiciones y Vida Local', 'Experiencias y Ocio', 'Inmaterial'] as const
+export type Categoria = typeof CATEGORIAS[number]
+
+export const IDENTIDADES = ['Natural', 'Patrimonial', 'Arquitectónico', 'Vida local', 'Cultural', 'Recreativa', 'Servicios'] as const
+export type Identidad = typeof IDENTIDADES[number]
+
+export const ENTORNOS = ['Urbano', 'Rural', 'Natural'] as const
+export type Entorno = typeof ENTORNOS[number]
+
+export const TIPOS_POR_CATEGORIA: Record<Categoria, string[]> = {
+  'Naturaleza y Paisaje': ['Paisaje', 'Biodiversidad', 'Hídrico', 'Áreas Verdes', 'Geografía', 'Reservas Naturales'],
+  'Cultura y Patrimonio': ['Patrimonio', 'Arqueología', 'Religioso', 'Arquitectura', 'Cultura y Artes'],
+  'Tradiciones y Vida Local': ['Experiencias Locales', 'Artesanía'],
+  'Experiencias y Ocio': ['Alojamiento', 'Gastronomía', 'Entretenimiento', 'Servicios turísticos'],
+  'Inmaterial': ['Costumbres', 'Memorias y relatos'],
+}
+
+export const TAGS_POR_TIPO: Record<string, string[]> = {
+  'Paisaje': ['Mirador', 'Dunas', 'Sendero', 'Camino', 'Circuito', 'Paseo'],
+  'Biodiversidad': ['Flora', 'Bosque', 'Manglar', 'Fauna', 'Humedal'],
+  'Hídrico': ['Río', 'Lago', 'Laguna', 'Termas', 'Cascadas', 'Embalse', 'Cataratas', 'Mar', 'Playa'],
+  'Áreas Verdes': ['Jardín botánico', 'Plaza', 'Parque'],
+  'Geografía': ['Montaña', 'Cerro', 'Glaciar', 'Volcán', 'Cueva', 'Isla'],
+  'Reservas Naturales': ['Parque nacional', 'Santuario de vida silvestre', 'Reserva de la biósfera', 'Reserva marina', 'Geoparque'],
+  'Patrimonio': ['Monumentos', 'Edificio histórico', 'Palacio'],
+  'Arqueología': ['Ruinas arqueológicas', 'Petroglifos', 'Pinturas rupestres', 'Pirámides', 'Templos arqueológicos'],
+  'Religioso': ['Iglesia', 'Cementerio', 'Convento', 'Ermita', 'Catedral', 'Parroquia', 'Capilla', 'Sinagoga', 'Mezquitas', 'Templo budista'],
+  'Arquitectura': ['Puente', 'Observatorio', 'Universidad', 'Escuela', 'Muelle', 'Estación metro', 'Estación tren', 'Estación ferry'],
+  'Cultura y Artes': ['Museos', 'Teatro', 'Cine', 'Biblioteca', 'Casa de la Cultura', 'Música'],
+  'Experiencias Locales': ['Café', 'Cacao', 'Apicultura', 'Granja', 'Granja educativa', 'Vino'],
+  'Artesanía': ['Textil tradicional', 'Cerámica', 'Madera tallada', 'Orfebrería', 'Cuero', 'Cestería'],
+  'Alojamiento': ['Hotel', 'Glamping', 'Cabaña', 'Bed and Breakfast', 'Albergue', 'Casa de húespedes', 'Refugio de montaña', 'Ecolodge', 'Camping', 'Hostal'],
+  'Gastronomía': ['Bar', 'Café', 'Heladería', 'Food Truck', 'Mercado', 'Viña', 'Restaurante'],
+  'Entretenimiento': ['Parque temático', 'Parque de atracciones', 'Juegos de escape', 'Casino', 'Estadio', 'Discoteca'],
+  'Servicios turísticos': ['Agencias de Viaje', 'Tour operador', 'Alquiler de vehículos', 'Guía turístico', 'Telefonía', 'Punto de información turística', 'Asistencia al viajero'],
+  'Costumbres': ['Fiestas', 'Festivales', 'Plato típico', 'Carnaval', 'Baile'],
+  'Memorias y relatos': ['Leyendas', 'Narraciones', 'Mito', 'Historia', 'Personaje histórico'],
+}
+
+export const TAG_ACCESIBILIDAD_VALUES = ['Accesible en silla de ruedas', 'Baños accesibles', 'Estacionamiento exclusivo para personas de movilidad reducida', 'Señalética inclusiva', 'Acceso con coche de bebé', 'Accesibilidad visual', 'Accesibilidad auditiva', 'Apto todo público', 'No apto para niños'] as const
+export const TAG_SERVICIOS_VALUES = ['Baños', 'Estacionamiento', 'Cafetería', 'Restaurante', 'Punto de información turística', 'Wi-Fi', 'Área de descanso', 'Zona de picnic', 'Tienda', 'Audioguía', 'Guías'] as const
+export const TAG_ACTIVIDADES_VALUES = ['Trekking', 'Escalada', 'Canopy', 'Tirolesa', 'Observación de flora y fauna', 'Ski', 'Snowboard', 'Trineo', 'Motos de nieve', 'Kayak', 'Rafting', 'Surf', 'Stand Up Paddle (SUP)', 'Windsurf', 'Kitesurf', 'Buceo', 'Snorkel', 'Pesca', 'Parapente', 'Paracaidismo', 'Cabalgata', 'Sandboard', 'City tours', 'Ciclismo', 'Mountain bike', 'Running', 'Yoga', 'Pilates'] as const
+export const TAG_CULTURAS_VALUES = ['Cultura Andina', 'Cultura Inca', 'Cultura Fueguina', 'Cultura Mapuche', 'Cultura Rapa Nui', 'Cultura Onas'] as const
+
 export interface Lugar {
   kind: 'lugar'
   id: string
@@ -17,10 +63,20 @@ export interface Lugar {
   description: string
   hours: string
   entry: string
+  importance?: number
   featured?: boolean
   destinoId?: string
   lat?: number
   lng?: number
+  categoria?: Categoria
+  identidad?: Identidad
+  entorno?: Entorno
+  tipo_punto?: string
+  tags_opcionales?: string[]
+  tag_accesibilidad?: string[]
+  tag_servicios?: string[]
+  tag_actividades?: string[]
+  tag_culturas?: string[]
 }
 
 export interface Destino {
@@ -1412,6 +1468,236 @@ export const LUGARES: Lugar[] = [
     destinoId: 'singapur', lat: 1.2868, lng: 103.8545,
   },
 ]
+
+// Importance values based on Nominatim (0–1 scale, higher = more globally recognized)
+const _IMPORTANCE: Record<string, number> = {
+  // España
+  'santa-gemma': 0.12,
+  'plaza-mayor': 0.62,
+  'sagrada-familia': 0.82,
+  'alhambra': 0.78,
+  'arco': 0.55,
+  'catedral-sevilla': 0.67,
+  'plaza-espana-sevilla': 0.66,
+  'alcazar-sevilla': 0.66,
+  'park-guell': 0.71,
+  'barrio-gotico': 0.58,
+  'catedral-toledo': 0.52,
+  'alcazar-segovia': 0.54,
+  'catedral-santiago': 0.68,
+  'las-ramblas': 0.65,
+  'palacio-real-madrid': 0.68,
+  // Venecia
+  'basilica-san-marcos': 0.78,
+  'puente-rialto': 0.70,
+  'palacio-ducal': 0.69,
+  'basilica-santa-maria-gloriosa': 0.48,
+  'museo-correr': 0.42,
+  'ponte-dei-sospiri': 0.65,
+  'ghetto-veneziano': 0.45,
+  'murano-isla': 0.50,
+  'basilica-frari': 0.45,
+  'ghetto-venezia': 0.42,
+  'mercado-rialto': 0.44,
+  'burano-isla': 0.48,
+  // Cusco
+  'sacsayhuaman': 0.58,
+  'san-blas': 0.40,
+  'mercado-san-pedro': 0.36,
+  'plaza-de-armas-cusco': 0.55,
+  'templo-santo-domingo': 0.45,
+  'pizac': 0.42,
+  'ollantaytambo': 0.56,
+  'sacsayhuaman-cusco': 0.52,
+  'pisac-ruinas': 0.40,
+  'ollantaytambo-valle': 0.48,
+  'chinchero-mercado': 0.28,
+  // Kyoto
+  'fushimi-inari': 0.76,
+  'arashiyama': 0.63,
+  'kinkaku-ji': 0.70,
+  'ginkaku-ji': 0.52,
+  'templo-kiyomizu-dera': 0.72,
+  'templo-fushimi-momiji-park': 0.32,
+  'arashiyama-tenryu-ji': 0.48,
+  'nijo-jo': 0.54,
+  'philosophers-path': 0.46,
+  'heian-jingu': 0.48,
+  'ryoanji-temple': 0.52,
+  'kiyomizudera': 0.72,
+  'pontocho-alley': 0.38,
+  // Bangkok
+  'wat-phra-kaew': 0.70,
+  'wat-arun': 0.68,
+  'mercado-flotante-damnoen': 0.52,
+  'gran-palacio': 0.72,
+  'templo-reclining-buddha': 0.66,
+  'chinatown-bangkok': 0.48,
+  'lumphini-park-bkk': 0.34,
+  'chatuchak-market': 0.46,
+  'jim-thompson-house': 0.38,
+  'khao-san-road': 0.46,
+  'erawan-shrine': 0.40,
+  // Roma
+  'coliseo': 0.83,
+  'vaticano-basilica': 0.84,
+  'panteón-roma': 0.79,
+  'fontana-di-trevi': 0.76,
+  'foro-romano': 0.77,
+  'castillo-sant-angelo': 0.67,
+  'piazza-navona': 0.68,
+  'campo-de-fiori': 0.48,
+  'trastevere': 0.52,
+  'galleria-borghese': 0.62,
+  'via-appia-antigua': 0.50,
+  // Ámsterdam
+  'museo-ana-frank': 0.76,
+  'canal-tour-amsterdam': 0.48,
+  'rijksmuseum': 0.75,
+  'barrio-rojo-amsterdam': 0.50,
+  'van-gogh-amsterdam': 0.72,
+  'vondelpark': 0.48,
+  'jordaan': 0.46,
+  'heineken-experience': 0.40,
+  'albert-cuyp-markt': 0.36,
+  // Lisboa
+  'torre-belem': 0.64,
+  'monasteri-jeronimos': 0.65,
+  'castello-sao-jorge': 0.60,
+  'alfama-barrio': 0.50,
+  'lx-factory': 0.34,
+  'miradouro-graca': 0.30,
+  'museu-azulejo': 0.40,
+  'pena-palace-sintra': 0.63,
+  // Singapur
+  'marina-bay-sands': 0.71,
+  'gardens-bay': 0.69,
+  'sentosa-island-sg': 0.48,
+  'chinatown-singapore': 0.44,
+  'little-india-singapore': 0.42,
+  'maxwell-food-centre': 0.36,
+  'merlion-park': 0.58,
+}
+for (const l of LUGARES) l.importance = _IMPORTANCE[l.id] ?? 0.20
+
+// ─── Taxonomía por lugar ─────────────────────────────────────────────────────
+type TaxData = {
+  categoria: Categoria; identidad: Identidad; entorno: Entorno; tipo_punto: string
+  tags_opcionales?: string[]; tag_accesibilidad?: string[]; tag_servicios?: string[]
+  tag_actividades?: string[]; tag_culturas?: string[]
+}
+const _TAX: Record<string, TaxData> = {
+  // ── España ──
+  'santa-gemma': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Parroquia'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Guías'] },
+  'plaza-mayor': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Baños'], tag_actividades: ['City tours'] },
+  'sagrada-familia': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Baños', 'Punto de información turística'], tag_actividades: ['City tours'] },
+  'alhambra': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Cafetería', 'Baños', 'Punto de información turística'], tag_actividades: ['City tours'] },
+  'arco': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Apto todo público'], tag_actividades: ['City tours'] },
+  'catedral-sevilla': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Catedral'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Guías'] },
+  'plaza-espana-sevilla': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_servicios: ['Punto de información turística'], tag_actividades: ['City tours'] },
+  'alcazar-sevilla': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños'] },
+  'park-guell': { categoria: 'Naturaleza y Paisaje', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Áreas Verdes', tags_opcionales: ['Parque'], tag_accesibilidad: ['Apto todo público', 'Acceso con coche de bebé'], tag_servicios: ['Tienda', 'Baños', 'Punto de información turística'], tag_actividades: ['City tours'] },
+  'barrio-gotico': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda'], tag_actividades: ['City tours'] },
+  'catedral-toledo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Catedral'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Guías'] },
+  'alcazar-segovia': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Guías'] },
+  'catedral-santiago': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Catedral'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Guías', 'Punto de información turística'] },
+  'las-ramblas': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda'], tag_actividades: ['City tours'] },
+  'palacio-real-madrid': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños'] },
+  // ── Venecia ──
+  'basilica-san-marcos': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda'] },
+  'puente-rialto': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Arquitectura', tags_opcionales: ['Puente'], tag_accesibilidad: ['Apto todo público'], tag_actividades: ['City tours'] },
+  'palacio-ducal': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños'] },
+  'basilica-santa-maria-gloriosa': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Guías'] },
+  'museo-correr': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Baños'] },
+  'ponte-dei-sospiri': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Arquitectura', tags_opcionales: ['Puente'], tag_accesibilidad: ['Apto todo público'] },
+  'ghetto-veneziano': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería'] },
+  'murano-isla': { categoria: 'Tradiciones y Vida Local', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Artesanía', tags_opcionales: ['Cerámica'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda', 'Restaurante'] },
+  'basilica-frari': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Apto todo público'] },
+  'ghetto-venezia': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante'] },
+  'mercado-rialto': { categoria: 'Experiencias y Ocio', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Gastronomía', tags_opcionales: ['Mercado'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'] },
+  'burano-isla': { categoria: 'Tradiciones y Vida Local', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Artesanía', tags_opcionales: ['Textil tradicional'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Tienda'] },
+  // ── Cusco ──
+  'sacsayhuaman': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_accesibilidad: ['No apto para niños'], tag_servicios: ['Guías', 'Punto de información turística'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'san-blas': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Artesanía', tags_opcionales: ['Cerámica', 'Textil tradicional'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Cafetería', 'Tienda'], tag_culturas: ['Cultura Andina', 'Cultura Inca'] },
+  'mercado-san-pedro': { categoria: 'Experiencias y Ocio', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Gastronomía', tags_opcionales: ['Mercado'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'], tag_culturas: ['Cultura Andina'] },
+  'plaza-de-armas-cusco': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Restaurante', 'Punto de información turística'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'templo-santo-domingo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Guías'], tag_culturas: ['Cultura Inca'] },
+  'pizac': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_servicios: ['Guías'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'ollantaytambo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_servicios: ['Guías', 'Punto de información turística'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'sacsayhuaman-cusco': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_servicios: ['Guías'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'pisac-ruinas': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_servicios: ['Guías'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'ollantaytambo-valle': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_servicios: ['Guías'], tag_actividades: ['Trekking'], tag_culturas: ['Cultura Inca', 'Cultura Andina'] },
+  'chinchero-mercado': { categoria: 'Tradiciones y Vida Local', identidad: 'Cultural', entorno: 'Rural', tipo_punto: 'Artesanía', tags_opcionales: ['Textil tradicional'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'], tag_culturas: ['Cultura Andina', 'Cultura Inca'] },
+  // ── Kyoto ──
+  'fushimi-inari': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños', 'Tienda'], tag_actividades: ['Trekking'] },
+  'arashiyama': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Natural', tipo_punto: 'Biodiversidad', tags_opcionales: ['Bosque'], tag_accesibilidad: ['Apto todo público', 'Acceso con coche de bebé'], tag_servicios: ['Restaurante', 'Tienda', 'Baños'], tag_actividades: ['Trekking', 'Ciclismo'] },
+  'kinkaku-ji': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda', 'Baños'] },
+  'ginkaku-ji': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda'] },
+  'templo-kiyomizu-dera': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda', 'Baños', 'Restaurante'] },
+  'templo-fushimi-momiji-park': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Áreas Verdes', tags_opcionales: ['Parque'], tag_accesibilidad: ['Apto todo público', 'Acceso con coche de bebé'], tag_servicios: ['Baños'] },
+  'arashiyama-tenryu-ji': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda'] },
+  'nijo-jo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños'] },
+  'philosophers-path': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Paisaje', tags_opcionales: ['Sendero', 'Paseo'], tag_accesibilidad: ['Apto todo público', 'Acceso con coche de bebé'], tag_actividades: ['Running'] },
+  'heian-jingu': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Tienda', 'Baños'] },
+  'ryoanji-temple': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda'] },
+  'kiyomizudera': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda', 'Baños', 'Restaurante'] },
+  'pontocho-alley': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante'] },
+  // ── Bangkok ──
+  'wat-phra-kaew': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Guías', 'Baños', 'Punto de información turística'] },
+  'wat-arun': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'] },
+  'mercado-flotante-damnoen': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Rural', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'] },
+  'gran-palacio': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Guías', 'Baños', 'Punto de información turística', 'Audioguía'] },
+  'templo-reclining-buddha': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Baños'] },
+  'chinatown-bangkok': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante'] },
+  'lumphini-park-bkk': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Áreas Verdes', tags_opcionales: ['Parque'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_servicios: ['Baños', 'Área de descanso'], tag_actividades: ['Running', 'Yoga', 'Ciclismo'] },
+  'chatuchak-market': { categoria: 'Experiencias y Ocio', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Gastronomía', tags_opcionales: ['Mercado'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños', 'Restaurante'] },
+  'jim-thompson-house': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Guías', 'Tienda', 'Cafetería'] },
+  'khao-san-road': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Tienda'] },
+  'erawan-shrine': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Templo budista'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'] },
+  // ── Roma ──
+  'coliseo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños', 'Punto de información turística'], tag_actividades: ['City tours'] },
+  'vaticano-basilica': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Iglesia'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños', 'Punto de información turística'] },
+  'panteón-roma': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía'] },
+  'fontana-di-trevi': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_actividades: ['City tours'] },
+  'foro-romano': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Baños', 'Punto de información turística'], tag_actividades: ['City tours'] },
+  'castillo-sant-angelo': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Edificio histórico'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Baños'] },
+  'piazza-navona': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería'], tag_actividades: ['City tours'] },
+  'campo-de-fiori': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería'] },
+  'trastevere': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda'], tag_actividades: ['City tours'] },
+  'galleria-borghese': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Cafetería', 'Baños'] },
+  'via-appia-antigua': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Arqueología', tags_opcionales: ['Ruinas arqueológicas'], tag_actividades: ['Ciclismo', 'Trekking'] },
+  // ── Ámsterdam ──
+  'museo-ana-frank': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Baños'] },
+  'canal-tour-amsterdam': { categoria: 'Experiencias y Ocio', identidad: 'Recreativa', entorno: 'Urbano', tipo_punto: 'Entretenimiento', tag_accesibilidad: ['Apto todo público'], tag_actividades: ['City tours'] },
+  'rijksmuseum': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Baños accesibles', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Cafetería', 'Restaurante', 'Baños'] },
+  'barrio-rojo-amsterdam': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['No apto para niños'], tag_servicios: ['Restaurante'] },
+  'van-gogh-amsterdam': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Tienda', 'Cafetería', 'Baños'] },
+  'vondelpark': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Áreas Verdes', tags_opcionales: ['Parque'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_servicios: ['Cafetería', 'Baños', 'Área de descanso'], tag_actividades: ['Running', 'Ciclismo', 'Yoga'] },
+  'jordaan': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda'], tag_actividades: ['Ciclismo'] },
+  'heineken-experience': { categoria: 'Experiencias y Ocio', identidad: 'Recreativa', entorno: 'Urbano', tipo_punto: 'Entretenimiento', tag_accesibilidad: ['No apto para niños'], tag_servicios: ['Tienda', 'Baños', 'Restaurante'] },
+  'albert-cuyp-markt': { categoria: 'Experiencias y Ocio', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Gastronomía', tags_opcionales: ['Mercado'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Baños'] },
+  // ── Lisboa ──
+  'torre-belem': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Tienda', 'Baños'] },
+  'monasteri-jeronimos': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Religioso', tags_opcionales: ['Convento'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Audioguía', 'Guías', 'Tienda', 'Baños'] },
+  'castello-sao-jorge': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Edificio histórico'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Cafetería', 'Tienda', 'Baños', 'Punto de información turística'] },
+  'alfama-barrio': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería'], tag_actividades: ['City tours'] },
+  'lx-factory': { categoria: 'Tradiciones y Vida Local', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda'] },
+  'miradouro-graca': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Paisaje', tags_opcionales: ['Mirador'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Cafetería'] },
+  'museu-azulejo': { categoria: 'Cultura y Patrimonio', identidad: 'Cultural', entorno: 'Urbano', tipo_punto: 'Cultura y Artes', tags_opcionales: ['Museos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Tienda', 'Cafetería', 'Baños'] },
+  'pena-palace-sintra': { categoria: 'Cultura y Patrimonio', identidad: 'Patrimonial', entorno: 'Rural', tipo_punto: 'Patrimonio', tags_opcionales: ['Palacio'], tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Cafetería', 'Tienda', 'Baños', 'Punto de información turística'] },
+  // ── Singapur ──
+  'marina-bay-sands': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Arquitectura', tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Restaurante', 'Tienda', 'Wi-Fi', 'Baños'] },
+  'gardens-bay': { categoria: 'Naturaleza y Paisaje', identidad: 'Natural', entorno: 'Urbano', tipo_punto: 'Áreas Verdes', tags_opcionales: ['Jardín botánico'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_servicios: ['Restaurante', 'Cafetería', 'Tienda', 'Baños'], tag_actividades: ['Observación de flora y fauna'] },
+  'sentosa-island-sg': { categoria: 'Experiencias y Ocio', identidad: 'Recreativa', entorno: 'Urbano', tipo_punto: 'Entretenimiento', tags_opcionales: ['Parque temático'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Restaurante', 'Tienda', 'Baños', 'Wi-Fi'] },
+  'chinatown-singapore': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Tienda'] },
+  'little-india-singapore': { categoria: 'Tradiciones y Vida Local', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Experiencias Locales', tag_accesibilidad: ['Apto todo público'], tag_servicios: ['Restaurante', 'Tienda'] },
+  'maxwell-food-centre': { categoria: 'Experiencias y Ocio', identidad: 'Vida local', entorno: 'Urbano', tipo_punto: 'Gastronomía', tags_opcionales: ['Mercado'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Apto todo público'], tag_servicios: ['Baños'] },
+  'merlion-park': { categoria: 'Cultura y Patrimonio', identidad: 'Arquitectónico', entorno: 'Urbano', tipo_punto: 'Patrimonio', tags_opcionales: ['Monumentos'], tag_accesibilidad: ['Accesible en silla de ruedas', 'Acceso con coche de bebé', 'Apto todo público'], tag_actividades: ['City tours'] },
+}
+for (const l of LUGARES) {
+  const t = _TAX[l.id]
+  if (t) Object.assign(l, t)
+}
 
 // ─── Destinos (10 totales: 5 existentes + 5 nuevos) ─────────────────────────────
 

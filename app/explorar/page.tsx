@@ -3,9 +3,8 @@
 import Image from 'next/image'
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
-  MapPin, Globe, Buildings, Star, Compass,
-  Mountains, Bank, Waves, ForkKnife, Palette, Tent,
-  CaretLeft, CaretRight, SlidersHorizontal, X,
+  Star, Compass,
+  CaretLeft, CaretRight,
 } from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
 import { Card } from '@/components/ui/Card'
@@ -15,38 +14,13 @@ import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
 import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findDestino as findDest } from '@/lib/data'
+import { useFilters, TaxonomyChips, TaxonomyModal, applyTaxonomyFilters } from '@/components/ui/TaxonomyFilters'
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 
-const LOCATION_FILTERS = [
-  { id: 'todos', label: 'Todos' },
-  { id: 'cerca', label: 'Cerca de mí', Icon: MapPin },
-  { id: 'pais', label: 'País', Icon: Globe },
-  { id: 'ciudad', label: 'Ciudad', Icon: Buildings },
-]
-
-const RATING_FILTERS = [
-  { id: 0, label: 'Todas' },
-  { id: 4, label: '4.0+' },
-  { id: 4.5, label: '4.5+' },
-]
-
-const MOODS = [
-  { id: 'aventura',    label: 'Aventura',    Icon: Mountains },
-  { id: 'historia',   label: 'Historia',    Icon: Bank },
-  { id: 'relajo',      label: 'Relajo',      Icon: Waves },
-  { id: 'gastronomia', label: 'Gastronomía', Icon: ForkKnife },
-  { id: 'cultura',     label: 'Cultura',     Icon: Palette },
-  { id: 'naturaleza',  label: 'Naturaleza',  Icon: Tent },
-]
-
-// Destinos para el carousel — todos los DESTINOS con imagen
 const CAROUSEL_DESTINOS = ALL_DESTINOS.filter(d => d.image)
-
-type Explorable = (typeof ALL_LUGARES[number] | typeof ALL_DESTINOS[number])
-
-const LUGARES = ALL_LUGARES.filter(l => l.distance)
 const DESTINOS = ALL_DESTINOS
+const MAX_ITEMS = 50
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
@@ -98,55 +72,47 @@ function DestinoCarousel() {
             alt={dest.title}
             fill
             className="object-cover"
-            sizes="(min-width: 1024px) calc(100vw - 240px), 100vw"
+            style={{ opacity: i === current ? 1 : 0, transition: 'opacity 0.6s ease' }}
             priority={i === 0}
-            style={{
-              opacity: i === current ? 1 : 0,
-              transition: 'opacity 0.7s ease',
-            }}
+            sizes="(max-width: 768px) 100vw, 80vw"
           />
         ))}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }}
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
 
-        {/* Badge */}
-        <div className="absolute top-6 left-5 sm:left-7">
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white"
-            style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.05em' }}
-          >
-            <Star size={10} weight="fill" aria-hidden="true" />
-            Destino recomendado
-          </span>
-        </div>
-
-        {/* Dot indicators */}
+        {/* Dots */}
         <div
-          className="absolute top-6 right-5 sm:right-7 flex items-center gap-1.5"
-          onClick={e => e.preventDefault()}
+          className="absolute flex items-center gap-1.5"
+          style={{ bottom: '18px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}
+          role="tablist"
           aria-label="Indicadores de destino"
         >
-          {CAROUSEL_DESTINOS.map((_, i) => (
+          {CAROUSEL_DESTINOS.map((dest, i) => (
             <button
-              key={i}
+              key={dest.id}
               onClick={e => { e.preventDefault(); e.stopPropagation(); goTo(i) }}
+              role="tab"
+              aria-selected={i === current}
               aria-label={`Ir a destino ${i + 1}`}
-              className="transition-all duration-300"
+              className="rounded-full transition-all duration-300"
               style={{
                 width: i === current ? '20px' : '6px',
                 height: '6px',
-                borderRadius: '3px',
-                background: i === current ? 'white' : 'rgba(255,255,255,0.4)',
-                border: 'none',
+                background: i === current ? 'white' : 'rgba(255,255,255,0.45)',
                 cursor: 'pointer',
-                padding: 0,
               }}
             />
           ))}
         </div>
+
+        <span
+          className="absolute top-5 left-5 text-[10px] font-bold uppercase px-3 py-1 rounded-full"
+          style={{
+            background: 'rgba(255,255,255,0.14)', backdropFilter: 'blur(6px)',
+            color: 'white', letterSpacing: '0.12em', fontFamily: 'var(--font-family-heading)',
+          }}
+        >
+          Destino recomendado
+        </span>
 
         {/* Content */}
         <div
@@ -218,66 +184,63 @@ function DestinoCarousel() {
 
 export default function ExplorarPage() {
   const [activeTab, setActiveTab] = useState<'lugares' | 'destinos' | 'rutas'>('lugares')
-  const [activeFilter, setActiveFilter] = useState('todos')
-  const [activeMood, setActiveMood] = useState<string | null>(null)
-  const [ratingMin, setRatingMin] = useState(0)
   const [query, setQuery] = useState('')
-  const [showMoreFilters, setShowMoreFilters] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const { favorites, toggleFavorite } = useFavorites()
   const revealRef = useScrollReveal()
+  const filters = useFilters()
 
   useEffect(() => {
-    if (activeFilter !== 'cerca' || userCoords) return
     navigator.geolocation?.getCurrentPosition(
       pos => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
       { timeout: 6000 }
     )
-  }, [activeFilter, userCoords])
+  }, [])
 
-  const hasActiveFilters = query.trim() !== '' || activeMood !== null || activeFilter !== 'todos' || ratingMin > 0
-  const extraFiltersCount = (activeFilter !== 'todos' ? 1 : 0) + (ratingMin > 0 ? 1 : 0)
+  const hasActiveFilters = query.trim() !== '' || filters.hasFilters
 
-  const matches = (item: Explorable) => {
-    if (query.trim() !== '') {
-      const haystack = norm(`${item.title} ${item.location} ${item.category}`)
-      if (!haystack.includes(norm(query.trim()))) return false
+  const filteredLugares = useMemo(() => {
+    let matched = applyTaxonomyFilters(ALL_LUGARES, filters.state)
+    if (query.trim()) {
+      const q = norm(query.trim())
+      matched = matched.filter(l => norm(`${l.title} ${l.location} ${l.category}`).includes(q))
     }
-    if (activeMood && !item.moods.includes(activeMood)) return false
-    if (ratingMin > 0 && item.rating < ratingMin) return false
-    if (activeFilter === 'cerca') {
-      if (!userCoords) return false
-      const lat = (item as { lat?: number }).lat
-      const lng = (item as { lng?: number }).lng
-      if (typeof lat !== 'number' || typeof lng !== 'number') return false
-      if (haversineKm(userCoords.lat, userCoords.lng, lat, lng) > 200) return false
+    if (userCoords) {
+      matched.sort((a, b) => {
+        const da = (typeof a.lat === 'number' && typeof a.lng === 'number')
+          ? haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) : Infinity
+        const db = (typeof b.lat === 'number' && typeof b.lng === 'number')
+          ? haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng) : Infinity
+        return da - db
+      })
+    } else {
+      matched.sort((a, b) => (b.importance ?? 0) - (a.importance ?? 0))
     }
-    if (activeFilter === 'pais' && item.category !== 'País') return false
-    if (activeFilter === 'ciudad' && item.category !== 'Ciudad') return false
-    return true
-  }
+    return matched
+  }, [query, filters.state, userCoords])
 
-  const filteredLugares = useMemo(() => LUGARES.filter(matches), [query, activeMood, activeFilter, ratingMin, userCoords])
-  const filteredDestinos = useMemo(() => DESTINOS.filter(matches), [query, activeMood, activeFilter, ratingMin, userCoords])
+  const filteredDestinos = useMemo(() => {
+    if (query.trim() === '') return DESTINOS
+    const q = norm(query.trim())
+    return DESTINOS.filter(d => norm(`${d.title} ${d.location} ${d.category}`).includes(q))
+  }, [query])
 
   const filteredRutas = useMemo(() => {
-    if (activeMood || activeFilter !== 'todos' || ratingMin > 0) return []
     if (query.trim() === '') return RUTAS
     const q = norm(query.trim())
     return RUTAS.filter(r => {
       const destino = findDest(r.destinoId)
       return norm(`${r.title} ${r.description} ${destino?.title ?? ''}`).includes(q)
     })
-  }, [query, activeMood, activeFilter, ratingMin])
+  }, [query])
 
   const noResults = filteredLugares.length === 0 && filteredDestinos.length === 0 && filteredRutas.length === 0
 
   const clearFilters = () => {
     setQuery('')
-    setActiveMood(null)
-    setActiveFilter('todos')
-    setRatingMin(0)
+    filters.clearAll()
   }
 
   const TABS = [
@@ -305,143 +268,33 @@ export default function ExplorarPage() {
         </h1>
       </div>
 
-      {/* Filtros — todo arriba del contenido */}
+      {/* Search + Taxonomy filters */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-6" data-delay="50">
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="flex-1">
-            <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, destinos, rutas..." />
-          </div>
-          <button
-            onClick={() => setShowMoreFilters(true)}
-            aria-label="Abrir más filtros"
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer"
-            style={{
-              background: extraFiltersCount > 0 ? 'var(--color-crimson)' : 'var(--color-surface)',
-              color: extraFiltersCount > 0 ? 'white' : 'var(--color-text-muted)',
-              border: extraFiltersCount > 0 ? 'none' : '1px solid var(--color-border)',
-            }}
-          >
-            <SlidersHorizontal size={15} aria-hidden="true" />
-            Más filtros
-            {extraFiltersCount > 0 && (
-              <span
-                className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.25)' }}
-              >
-                {extraFiltersCount}
-              </span>
-            )}
-          </button>
+        <div className="mb-4">
+          <SearchBar value={query} onChange={setQuery} placeholder="Buscar lugares, destinos, rutas..." />
         </div>
-
-        {/* Mood chips */}
-        <div className="flex gap-2 overflow-x-auto scroll-hide">
-          {MOODS.map(({ id, label, Icon }) => {
-            const active = activeMood === id
-            return (
-              <button
-                key={id}
-                onClick={() => setActiveMood(active ? null : id)}
-                aria-pressed={active}
-                className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 active:scale-95"
-                style={{
-                  background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
-                  color: active ? 'white' : 'var(--color-text-muted)',
-                  border: active ? 'none' : '1px solid var(--color-border)',
-                }}
-              >
-                <Icon size={11} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
-                {label}
-              </button>
-            )
-          })}
-        </div>
+        <TaxonomyChips
+          state={filters.state}
+          setCategoria={filters.setCategoria}
+          setTipoPunto={filters.setTipoPunto}
+          activeCount={filters.activeCount}
+          onOpenModal={() => setShowModal(true)}
+        />
       </div>
 
-      {/* Modal: más filtros */}
-      {showMoreFilters && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
-          onClick={() => setShowMoreFilters(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl p-6"
-            style={{ background: 'var(--color-card)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-base" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
-                Más filtros
-              </h2>
-              <button
-                onClick={() => setShowMoreFilters(false)}
-                aria-label="Cerrar filtros"
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                style={{ color: 'var(--color-text-muted)', background: 'var(--color-surface)' }}
-              >
-                <X size={15} aria-hidden="true" />
-              </button>
-            </div>
+      {/* Taxonomy modal */}
+      {showModal && (
+        <TaxonomyModal
+          {...filters}
+          resultCount={filteredLugares.length}
+          onClose={() => setShowModal(false)}
+        />
+      )}
 
-            <p className="text-xs font-bold uppercase mb-2.5" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
-              Ubicación
-            </p>
-            <div className="flex flex-wrap gap-2 mb-5">
-              {LOCATION_FILTERS.map(({ id, label, Icon }) => {
-                const active = activeFilter === id
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveFilter(id)}
-                    aria-pressed={active}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all"
-                    style={{
-                      background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
-                      color: active ? 'white' : 'var(--color-text-muted)',
-                      border: active ? 'none' : '1px solid var(--color-border)',
-                    }}
-                  >
-                    {Icon && <Icon size={13} aria-hidden="true" />}
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <p className="text-xs font-bold uppercase mb-2.5" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.08em' }}>
-              Calificación mínima
-            </p>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {RATING_FILTERS.map(({ id, label }) => {
-                const active = ratingMin === id
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setRatingMin(id)}
-                    aria-pressed={active}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer transition-all"
-                    style={{
-                      background: active ? 'var(--color-crimson)' : 'var(--color-surface)',
-                      color: active ? 'white' : 'var(--color-text-muted)',
-                      border: active ? 'none' : '1px solid var(--color-border)',
-                    }}
-                  >
-                    {id > 0 && <Star size={12} weight="fill" aria-hidden="true" />}
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button
-              onClick={() => { setActiveFilter('todos'); setRatingMin(0); setShowMoreFilters(false) }}
-              className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
-              style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}
-            >
-              Limpiar filtros
-            </button>
-          </div>
+      {/* Carousel de destinos destacados */}
+      {!hasActiveFilters && (
+        <div className="px-5 sm:px-8 lg:px-12">
+          <DestinoCarousel />
         </div>
       )}
 
@@ -449,13 +302,6 @@ export default function ExplorarPage() {
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="100">
         <Tabs tabs={TABS} activeId={activeTab} onChange={id => setActiveTab(id as typeof activeTab)} />
       </div>
-
-      {/* Carousel — solo en tab Destinos, sin filtros activos */}
-      {activeTab === 'destinos' && !hasActiveFilters && (
-        <div className="px-5 sm:px-8 lg:px-12">
-          <DestinoCarousel />
-        </div>
-      )}
 
       {/* Sin resultados */}
       {noResults && hasActiveFilters ? (
@@ -495,18 +341,36 @@ export default function ExplorarPage() {
 
           {/* Tab: Lugares */}
           {activeTab === 'lugares' && filteredLugares.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
-              {filteredLugares.map((lugar, i) => (
-                <Card
-                  key={lugar.id}
-                  {...lugar}
-                  revealDelay={i * 30}
-                  priority={i === 0}
-                  isFavorite={favorites.has(lugar.id)}
-                  onFavoriteToggle={() => toggleFavorite(lugar.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
+                {filteredLugares.slice(0, MAX_ITEMS).map((lugar, i) => (
+                  <Card
+                    key={lugar.id}
+                    {...lugar}
+                    revealDelay={i * 30}
+                    priority={i === 0}
+                    isFavorite={favorites.has(lugar.id)}
+                    onFavoriteToggle={() => toggleFavorite(lugar.id)}
+                  />
+                ))}
+              </div>
+              {filteredLugares.length > MAX_ITEMS && (
+                <div className="flex justify-center pt-10">
+                  <TransitionLink
+                    href="/lugares"
+                    className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
+                    style={{
+                      background: 'var(--color-crimson)',
+                      color: 'white',
+                      fontFamily: 'var(--font-family-heading)',
+                    }}
+                  >
+                    Ver todos los lugares
+                    <CaretRight size={14} weight="bold" aria-hidden="true" />
+                  </TransitionLink>
+                </div>
+              )}
+            </>
           )}
 
           {/* Tab: Destinos */}

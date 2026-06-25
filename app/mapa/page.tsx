@@ -2,14 +2,13 @@
 
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
-  Crosshair, Star, Church, Tree, ShoppingBag, Bank,
-  List, X, Buildings, Palette, Crown, MapPin, MagnifyingGlass,
+  Crosshair, Star, MapPin, MagnifyingGlass,
+  List, X, FunnelSimple,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
-import type { Icon } from '@phosphor-icons/react'
-import { LUGARES, DESTINOS, COMERCIOS } from '@/lib/data'
+import { LUGARES, DESTINOS, COMERCIOS, CATEGORIAS } from '@/lib/data'
 
 const MapView = dynamic(() => import('@/components/map/MapView'), {
   ssr: false,
@@ -30,32 +29,6 @@ const MapView = dynamic(() => import('@/components/map/MapView'), {
     </div>
   ),
 })
-
-// ── Category → icon / color maps ──────────────────────────────────────────────
-
-const CATEGORY_ICONS: Record<string, Icon> = {
-  Iglesia: Church,
-  Basílica: Church,
-  Monasterio: Church,
-  Templo: Star,
-  Santuario: Star,
-  Experiencia: Star,
-  Bosque: Tree,
-  Parque: Tree,
-  Jardín: Tree,
-  Monumento: Bank,
-  Fuente: Bank,
-  Ruinas: Bank,
-  Mercado: ShoppingBag,
-  Palacio: Crown,
-  Castillo: Crown,
-  Rascacielos: Buildings,
-  Museo: Palette,
-}
-
-function getCategoryIcon(category: string): Icon {
-  return CATEGORY_ICONS[category] ?? MapPin
-}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -127,6 +100,20 @@ const ALL_MAP_COMERCIOS: MapComercio[] = COMERCIOS
     }
   })
 
+type ListItem = {
+  kind: 'lugar' | 'comercio'
+  id: string
+  title: string
+  category: string
+  image?: string
+  lat: number
+  lng: number
+  location: string
+  rating: number
+  featured?: boolean
+  description?: string
+}
+
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 // ── Haversine distance (km) ───────────────────────────────────────────────────
@@ -146,6 +133,7 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 export interface MapPlace {
   id: string
   category: string
+  categoria?: string
   title: string
   location: string
   rating: number
@@ -163,6 +151,7 @@ const ALL_PLACES: MapPlace[] = LUGARES
   .map(l => ({
     id: l.id,
     category: l.category,
+    categoria: l.categoria,
     title: l.title,
     location: l.location,
     rating: l.rating,
@@ -173,12 +162,11 @@ const ALL_PLACES: MapPlace[] = LUGARES
     description: l.description,
   }))
 
-const CATEGORIES = ['Todos', ...Array.from(new Set(ALL_PLACES.map(p => p.category))).sort()]
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function MapaPage() {
-  const [activeCategory, setActiveCategory] = useState('Todos')
+  const [activeCategoria, setActiveCategoria] = useState<string | null>(null)
+  const [categoriaOpen, setCategoriaOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -188,6 +176,9 @@ export default function MapaPage() {
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [flyToTarget, setFlyToTarget] = useState<{ lat: number; lng: number; zoom?: number } | null>(null)
+  const [geoQuery, setGeoQuery] = useState('')
+  const [geoResults, setGeoResults] = useState<{ place_name: string; center: [number, number] }[]>([])
+  const geoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -212,38 +203,80 @@ export default function MapaPage() {
     )
   }
 
-  // All places for the active category — passed to MapView for rendering markers
-  const mapPlaces = useMemo(() =>
-    activeCategory === 'Todos'
-      ? ALL_PLACES
-      : ALL_PLACES.filter(p => p.category === activeCategory)
-  , [activeCategory])
+  const handleGeoSearch = useCallback((q: string) => {
+    setGeoQuery(q)
+    if (geoTimerRef.current) clearTimeout(geoTimerRef.current)
+    if (q.trim().length < 3) { setGeoResults([]); return }
+    geoTimerRef.current = setTimeout(async () => {
+      try {
+        const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q.trim())}.json?access_token=${token}&limit=5&language=es`
+        )
+        const data = await res.json()
+        setGeoResults(
+          (data.features ?? []).map((f: { place_name: string; center: [number, number] }) => ({
+            place_name: f.place_name,
+            center: f.center,
+          }))
+        )
+      } catch { setGeoResults([]) }
+    }, 350)
+  }, [])
 
-  // Search results — across all places regardless of category/viewport filters
+  function handleGeoSelect(result: { place_name: string; center: [number, number] }) {
+    setFlyToTarget({ lat: result.center[1], lng: result.center[0], zoom: 14 })
+    setGeoQuery(result.place_name.split(',')[0])
+    setGeoResults([])
+  }
+
+  // All places for the active categoría — passed to MapView for rendering markers
+  const mapPlaces = useMemo(() =>
+    activeCategoria === null
+      ? ALL_PLACES
+      : ALL_PLACES.filter(p => p.categoria === activeCategoria)
+  , [activeCategoria])
+
+  // Search results — across all places and comercios regardless of filters
   const searchResults = useMemo(() => {
     const q = norm(searchQuery.trim())
-    if (!q) return []
-    return ALL_PLACES.filter(p => norm(`${p.title} ${p.location}`).includes(q)).slice(0, 6)
+    if (!q) return [] as ListItem[]
+    const places: ListItem[] = ALL_PLACES
+      .filter(p => norm(`${p.title} ${p.location}`).includes(q))
+      .slice(0, 4)
+      .map(p => ({ ...p, kind: 'lugar' as const }))
+    const comercios: ListItem[] = ALL_MAP_COMERCIOS
+      .filter(c => norm(`${c.title} ${c.category}`).includes(q))
+      .slice(0, 2)
+      .map(c => ({ ...c, kind: 'comercio' as const, location: '', rating: 0 }))
+    return [...places, ...comercios]
   }, [searchQuery])
 
-  function handleSearchSelect(place: MapPlace) {
-    setSelectedId(place.id)
-    setFlyToTarget({ lat: place.lat, lng: place.lng, zoom: 13 })
+  function handleSearchSelect(item: ListItem) {
+    setSelectedId(item.id)
+    setFlyToTarget({ lat: item.lat, lng: item.lng, zoom: 13 })
     setSearchQuery('')
     if (isMobile) setPanelOpen(false)
   }
 
-  // List items — filtered by current viewport bounds and optionally sorted by proximity
+  // List items — places + comercios filtered by viewport bounds, optionally sorted by proximity
   const filtered = useMemo(() => {
-    let list = mapPlaces
+    let places: ListItem[] = mapPlaces.map(p => ({ ...p, kind: 'lugar' as const }))
+    let comercios: ListItem[] = ALL_MAP_COMERCIOS.map(c => ({
+      ...c, kind: 'comercio' as const, location: '', rating: 0,
+    }))
+
     if (mapBounds) {
-      list = list.filter(p =>
+      const inBounds = (p: { lat: number; lng: number }) =>
         p.lat >= mapBounds.south && p.lat <= mapBounds.north &&
         p.lng >= mapBounds.west && p.lng <= mapBounds.east
-      )
+      places = places.filter(inBounds)
+      comercios = comercios.filter(inBounds)
     }
+
+    let list = [...places, ...comercios]
     if (nearbyMode && userCoords) {
-      list = [...list].sort(
+      list.sort(
         (a, b) =>
           haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) -
           haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng)
@@ -279,7 +312,7 @@ export default function MapaPage() {
           )}
         </div>
         <p className="text-sm mb-3" style={{ color: 'var(--color-text-muted)' }}>
-          {filtered.length} lugar{filtered.length !== 1 ? 'es' : ''} en vista
+          {filtered.length} resultado{filtered.length !== 1 ? 's' : ''} en vista
         </p>
 
         <div className="relative mb-3">
@@ -320,7 +353,7 @@ export default function MapaPage() {
           )}
         </div>
 
-        <div className="flex gap-2 overflow-x-auto scroll-hide pb-1">
+        <div className="flex gap-2 pb-1">
           <button
             onClick={toggleNearby}
             aria-pressed={nearbyMode}
@@ -336,37 +369,74 @@ export default function MapaPage() {
             <Crosshair size={12} aria-hidden="true" />
             {geoLoading ? 'Localizando…' : 'Cerca de mí'}
           </button>
-          {CATEGORIES.map(cat => {
-            const isActive = cat === activeCategory
-            const CatIcon = cat !== 'Todos' ? getCategoryIcon(cat) : null
-            return (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                aria-pressed={isActive}
-                className="flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
-                style={{
-                  background: isActive ? 'var(--color-crimson)' : 'var(--color-surface)',
-                  color: isActive ? 'white' : 'var(--color-text-muted)',
-                  border: isActive ? 'none' : '1px solid var(--color-border)',
-                }}
-              >
-                {CatIcon && <CatIcon size={12} aria-hidden="true" />}
-                {cat}
-              </button>
-            )
-          })}
+
+          <div className="relative flex-shrink-0">
+            <button
+              onClick={() => setCategoriaOpen(o => !o)}
+              aria-pressed={activeCategoria !== null}
+              aria-expanded={categoriaOpen}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200"
+              style={{
+                background: activeCategoria !== null ? 'var(--color-crimson)' : 'var(--color-surface)',
+                color: activeCategoria !== null ? 'white' : 'var(--color-text-muted)',
+                border: activeCategoria !== null ? 'none' : '1px solid var(--color-border)',
+              }}
+            >
+              <FunnelSimple size={12} aria-hidden="true" />
+              {activeCategoria ?? 'Categoría'}
+            </button>
+
+            {categoriaOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setCategoriaOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute left-0 top-full mt-1.5 rounded-xl overflow-hidden z-20"
+                  style={{ background: 'var(--color-card)', boxShadow: '0 12px 32px rgba(0,0,0,0.18)', border: '1px solid var(--color-border)', minWidth: '220px' }}
+                >
+                  <button
+                    onClick={() => { setActiveCategoria(null); setCategoriaOpen(false) }}
+                    className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+                    style={{
+                      color: activeCategoria === null ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                      fontWeight: activeCategoria === null ? 600 : 400,
+                      borderBottom: '1px solid var(--color-border)',
+                    }}
+                  >
+                    Todos
+                  </button>
+                  {CATEGORIAS.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => { setActiveCategoria(cat); setCategoriaOpen(false) }}
+                      className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+                      style={{
+                        color: activeCategoria === cat ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                        fontWeight: activeCategoria === cat ? 600 : 400,
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {filtered.map(place => {
-          const isSelected = selectedId === place.id
+        {filtered.map(item => {
+          const isSelected = selectedId === item.id
+          const detailHref = item.kind === 'comercio' ? `/red-travel/${item.id}` : `/explorar/${item.id}`
 
           return (
             <button
-              key={place.id}
-              onClick={() => handleSelect(place.id)}
+              key={`${item.kind}-${item.id}`}
+              onClick={() => handleSelect(item.id)}
               className="w-full text-left px-5 py-[14px] border-b cursor-pointer transition-colors"
               style={{
                 borderColor: 'var(--color-border)',
@@ -384,16 +454,25 @@ export default function MapaPage() {
                   className="relative flex-shrink-0 rounded-xl overflow-hidden"
                   style={{ width: '64px', height: '64px', background: 'var(--color-border)' }}
                 >
-                  {place.image && (
-                    <Image src={place.image} alt={place.title} fill className="object-cover" sizes="64px" />
+                  {item.image && (
+                    <Image src={item.image} alt={item.title} fill className="object-cover" sizes="64px" />
                   )}
-                  {place.featured && (
+                  {item.featured && (
                     <span
                       className="absolute top-1 left-1 flex items-center justify-center rounded-full"
                       style={{ width: '16px', height: '16px', background: 'var(--color-crimson)' }}
                       aria-label="Lugar destacado"
                     >
                       <Star size={9} weight="fill" color="white" aria-hidden="true" />
+                    </span>
+                  )}
+                  {item.kind === 'comercio' && (
+                    <span
+                      className="absolute bottom-1 right-1 flex items-center justify-center rounded-full text-white"
+                      style={{ width: '16px', height: '16px', background: '#EA580C', fontSize: '8px', fontWeight: 700 }}
+                      aria-label="Comercio Red Travel"
+                    >
+                      RT
                     </span>
                   )}
                 </div>
@@ -403,21 +482,23 @@ export default function MapaPage() {
                       className="font-semibold text-sm truncate"
                       style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
                     >
-                      {place.title}
+                      {item.title}
                     </p>
-                    <span className="flex items-center gap-0.5 flex-shrink-0">
-                      <Star size={10} weight="fill" color="#FBBF24" aria-hidden="true" />
-                      <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                        {place.rating.toFixed(1)}
+                    {item.rating > 0 && (
+                      <span className="flex items-center gap-0.5 flex-shrink-0">
+                        <Star size={10} weight="fill" color="#FBBF24" aria-hidden="true" />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                          {item.rating.toFixed(1)}
+                        </span>
                       </span>
-                    </span>
+                    )}
                   </div>
                   <p className="text-xs mb-1" style={{ color: 'var(--color-text-muted)' }}>
-                    {place.category} · {place.location}
+                    {item.kind === 'comercio' ? `Red Travel · ${item.category}` : `${item.category} · ${item.location}`}
                   </p>
-                  {place.description && (
+                  {item.description && (
                     <p className="text-xs line-clamp-2" style={{ color: 'var(--color-text-muted)', lineHeight: '1.4' }}>
-                      {place.description}
+                      {item.description}
                     </p>
                   )}
                 </div>
@@ -426,9 +507,9 @@ export default function MapaPage() {
               {isSelected && (
                 <div className="mt-3">
                   <Link
-                    href={`/explorar/${place.id}`}
+                    href={detailHref}
                     className="block text-center text-xs font-semibold py-2 rounded-lg text-white cursor-pointer transition-opacity hover:opacity-90"
-                    style={{ background: 'var(--color-crimson)' }}
+                    style={{ background: item.kind === 'comercio' ? '#EA580C' : 'var(--color-crimson)' }}
                     onClick={e => e.stopPropagation()}
                   >
                     Ver detalle
@@ -467,6 +548,74 @@ export default function MapaPage() {
           onBoundsChange={setMapBounds}
         />
 
+        {/* Geocoding search overlay */}
+        <div
+          className="absolute flex flex-col"
+          style={{
+            top: isMobile ? '60px' : '16px',
+            right: '16px',
+            left: isMobile ? '16px' : 'auto',
+            width: isMobile ? undefined : '340px',
+            zIndex: 10,
+          }}
+        >
+          <div className="relative">
+            <MagnifyingGlass
+              size={16}
+              aria-hidden="true"
+              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
+            />
+            <input
+              type="text"
+              value={geoQuery}
+              onChange={e => handleGeoSearch(e.target.value)}
+              placeholder="Buscar dirección o lugar..."
+              aria-label="Buscar dirección en el mapa"
+              className="w-full text-sm rounded-xl py-3 pl-10 pr-9 outline-none"
+              style={{
+                background: 'var(--color-card)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
+            />
+            {geoQuery && (
+              <button
+                onClick={() => { setGeoQuery(''); setGeoResults([]) }}
+                aria-label="Limpiar búsqueda"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+              >
+                <X size={10} weight="bold" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+          {geoResults.length > 0 && (
+            <div
+              className="mt-1.5 rounded-xl overflow-hidden"
+              style={{
+                background: 'var(--color-card)',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              {geoResults.map((r, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleGeoSelect(r)}
+                  className="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors flex items-start gap-2.5"
+                  style={{ color: 'var(--color-text-primary)', borderBottom: i < geoResults.length - 1 ? '1px solid var(--color-border)' : 'none' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <MapPin size={14} weight="fill" aria-hidden="true" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} />
+                  <span className="line-clamp-2 leading-snug">{r.place_name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Mobile: toggle list button */}
         {isMobile && (
           <button
@@ -481,7 +630,7 @@ export default function MapaPage() {
             }}
           >
             <List size={16} weight="regular" aria-hidden="true" />
-            {filtered.length} lugares
+            {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
           </button>
         )}
 

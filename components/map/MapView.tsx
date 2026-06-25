@@ -7,11 +7,10 @@ import type { MapPlace, MapDestino, MapComercio } from '@/app/mapa/page'
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!
 
-// Three gradual zoom layers: destinos (world/continental) → comercios (regional) → lugares (city)
-const DESTINO_MAX_ZOOM = 7
-const COMERCIO_MIN_ZOOM = 6
-const COMERCIO_MAX_ZOOM = 10
-const PLACE_MIN_ZOOM = 8
+// Two zoom layers: destinos (world/continental, zoom < 13) → lugares + comercios (city, zoom ≥ 13)
+const DESTINO_MAX_ZOOM = 13
+const PLACE_MIN_ZOOM = 13
+const COMERCIO_MIN_ZOOM = 13
 
 const OPACITY_TRANSITION = 'opacity 350ms ease'
 
@@ -60,14 +59,19 @@ function getCategoryMarker(category: string): CategoryMarker {
 
 // ── Place marker — icon by category, larger + stronger shadow when featured ──
 
+const PLACE_MARKER_SIZE = 28
+const PLACE_MARKER_ICON_SIZE = 15
+
 function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement {
   const { color, icon } = getCategoryMarker(place.category)
-  const size = place.featured ? 34 : 26
-  const iconSize = place.featured ? 18 : 14
+  const size = PLACE_MARKER_SIZE
+  const iconSize = PLACE_MARKER_ICON_SIZE
 
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
+  // Mapbox GL resets opacity on the root .mapboxgl-marker element — control visibility on the inner child instead
+  el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`
+  el.dataset.layer = 'place'
 
   const inner = document.createElement('div')
   inner.style.cssText = `
@@ -75,8 +79,9 @@ function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement
     background:white;border:2.5px solid ${color};
     display:flex;align-items:center;justify-content:center;
     box-shadow:${place.featured ? '0 4px 14px rgba(0,0,0,0.35)' : '0 2px 6px rgba(0,0,0,0.25)'};
-    transition:transform 0.12s ease;
+    transition:transform 0.12s ease, opacity 350ms ease;
     color:${color};
+    opacity:0;pointer-events:none;
   `
   inner.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none">${icon}</svg>`
   inner.dataset.baseColor = color
@@ -99,7 +104,12 @@ function createPlaceMarkerEl(place: MapPlace, onSelect: () => void): HTMLElement
 function createDestinoPinEl(destino: MapDestino): HTMLElement {
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = `width:44px;height:52px;display:flex;flex-direction:column;align-items:center;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
+  // Mapbox GL resets opacity on root — use a wrapper child for visibility control
+  el.style.cssText = `width:44px;height:52px;cursor:pointer;`
+  el.dataset.layer = 'destino'
+
+  const wrapper = document.createElement('div')
+  wrapper.style.cssText = `width:44px;height:52px;display:flex;flex-direction:column;align-items:center;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
 
   const circle = document.createElement('div')
   circle.style.cssText = `
@@ -130,28 +140,34 @@ function createDestinoPinEl(destino: MapDestino): HTMLElement {
     circle.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)'
   })
 
-  el.appendChild(circle)
-  el.appendChild(tip)
+  wrapper.appendChild(circle)
+  wrapper.appendChild(tip)
+  el.appendChild(wrapper)
   return el
 }
 
 // ── Comercio marker — store icon, intermediate zoom layer ────────────────────
 
 function createComercioMarkerEl(comercio: MapComercio, onSelect: () => void): HTMLElement {
+  const size = PLACE_MARKER_SIZE
+  const iconSize = PLACE_MARKER_ICON_SIZE
+
   const el = document.createElement('div')
   // No position:relative on root element (CLAUDE.md rule)
-  el.style.cssText = `width:26px;height:26px;cursor:pointer;opacity:0;pointer-events:none;transition:${OPACITY_TRANSITION};`
+  el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`
+  el.dataset.layer = 'comercio'
 
   const inner = document.createElement('div')
   inner.style.cssText = `
-    width:26px;height:26px;border-radius:50%;
+    width:${size}px;height:${size}px;border-radius:50%;
     background:white;border:2.5px solid #EA580C;
     display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.25);
-    transition:transform 0.12s ease;
+    transition:transform 0.12s ease, opacity 350ms ease;
     color:#EA580C;
+    opacity:0;pointer-events:none;
   `
-  inner.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none">${ICON_SHOP}</svg>`
+  inner.innerHTML = `<svg width="${iconSize}" height="${iconSize}" viewBox="0 0 24 24" fill="none">${ICON_SHOP}</svg>`
   inner.dataset.baseColor = '#EA580C'
 
   el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.2)' })
@@ -277,15 +293,17 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     if (!map || !mapLoaded) return
 
     const setVisible = (el: HTMLElement, visible: boolean) => {
-      el.style.opacity = visible ? '1' : '0'
-      el.style.pointerEvents = visible ? 'auto' : 'none'
+      const child = el.firstElementChild as HTMLElement | null
+      if (!child) return
+      child.style.opacity = visible ? '1' : '0'
+      child.style.pointerEvents = visible ? 'auto' : 'none'
     }
 
     const updateVisibility = () => {
       const zoom = map.getZoom()
       const showPlaces = zoom >= PLACE_MIN_ZOOM
       const showDestinos = zoom < DESTINO_MAX_ZOOM
-      const showComercios = zoom >= COMERCIO_MIN_ZOOM && zoom <= COMERCIO_MAX_ZOOM
+      const showComercios = zoom >= COMERCIO_MIN_ZOOM
 
       placeMarkersRef.current.forEach(({ marker }) => setVisible(marker.getElement(), showPlaces))
       destinoMarkersRef.current.forEach(m => setVisible(m.getElement(), showDestinos))
@@ -312,7 +330,8 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
 
     places.forEach(place => {
       const el = createPlaceMarkerEl(place, () => { onSelectRef.current?.(place.id) })
-      if (showMarkers) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
+      const inner = el.firstElementChild as HTMLElement
+      if (showMarkers) { inner.style.opacity = '1'; inner.style.pointerEvents = 'auto' }
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([place.lng, place.lat])
@@ -337,11 +356,12 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     comercioMarkersRef.current = []
 
     const zoom = map.getZoom()
-    const showComercios = zoom >= COMERCIO_MIN_ZOOM && zoom <= COMERCIO_MAX_ZOOM
+    const showComercios = zoom >= COMERCIO_MIN_ZOOM
 
     comercios.forEach(comercio => {
       const el = createComercioMarkerEl(comercio, () => { onSelectRef.current?.(comercio.id) })
-      if (showComercios) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
+      const inner = el.firstElementChild as HTMLElement
+      if (showComercios) { inner.style.opacity = '1'; inner.style.pointerEvents = 'auto' }
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([comercio.lng, comercio.lat])
@@ -390,7 +410,8 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
 
     destinos.forEach(destino => {
       const el = createDestinoPinEl(destino)
-      if (showDestinos) { el.style.opacity = '1'; el.style.pointerEvents = 'auto' }
+      const wrapper = el.firstElementChild as HTMLElement
+      if (showDestinos) { wrapper.style.opacity = '1'; wrapper.style.pointerEvents = 'auto' }
       el.addEventListener('click', () => {
         map.flyTo({ center: [destino.lng, destino.lat], zoom: 10, duration: 1200, essential: true })
       })
