@@ -6,19 +6,26 @@ export interface TabItem {
   count?: number
 }
 
+const SIZE = {
+  sm: { text: 'text-sm', weight: 'font-semibold', padding: 'pb-3 pt-1', gap: 'gap-7', indicator: '2px' },
+  lg: { text: 'text-lg', weight: 'font-bold', padding: 'pb-4 pt-2', gap: 'gap-10', indicator: '3px' },
+} as const
+
 interface TabsProps {
   tabs: TabItem[]
   activeId: string
   onChange: (id: string) => void
+  size?: 'sm' | 'lg'
   className?: string
 }
 
-export function Tabs({ tabs, activeId, onChange, className = '' }: TabsProps) {
+export function Tabs({ tabs, activeId, onChange, size = 'sm', className = '' }: TabsProps) {
+  const s = SIZE[size]
   return (
     <div
       role="tablist"
       aria-label="Pestañas de contenido"
-      className={`flex gap-7 overflow-x-auto scroll-hide border-b ${className}`}
+      className={`flex ${s.gap} overflow-x-auto scroll-hide border-b ${className}`}
       style={{ borderColor: 'var(--color-border)' }}
     >
       {tabs.map(tab => {
@@ -29,7 +36,7 @@ export function Tabs({ tabs, activeId, onChange, className = '' }: TabsProps) {
             role="tab"
             aria-selected={active}
             onClick={() => onChange(tab.id)}
-            className="relative flex-shrink-0 pb-3 pt-1 text-sm font-semibold cursor-pointer transition-colors"
+            className={`relative flex-shrink-0 ${s.padding} ${s.text} ${s.weight} cursor-pointer transition-colors`}
             style={{
               color: active ? 'var(--color-crimson)' : 'var(--color-text-muted)',
               fontFamily: 'var(--font-family-heading)',
@@ -49,7 +56,7 @@ export function Tabs({ tabs, activeId, onChange, className = '' }: TabsProps) {
                   left: 0,
                   right: 0,
                   bottom: '-1px',
-                  height: '2px',
+                  height: s.indicator,
                   borderRadius: '2px',
                   background: 'var(--color-crimson)',
                 }}

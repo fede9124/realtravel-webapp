@@ -100,6 +100,7 @@ export interface Comercio {
   kind: 'comercio'
   id: string
   image: string
+  images?: string[]
   logo?: string
   category: string
   title: string
@@ -111,11 +112,19 @@ export interface Comercio {
   address: string
   hours: string
   phone?: string
+  whatsapp?: string
+  email?: string
   website?: string
+  instagram?: string
+  facebook?: string
+  tiktok?: string
   benefit?: string
   conditions?: string[]
   destinoId?: string
   rutaIds?: string[]
+  hostStory?: string
+  lat?: number
+  lng?: number
 }
 
 // ─── Lugares (50 totales) ─────────────────────────────────────────────────────
@@ -1925,6 +1934,11 @@ export const COMERCIOS: Comercio[] = [
     kind: 'comercio',
     id: 'rincon',
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600',
+      'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=600',
+      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200',
     category: 'Gastronomía',
     title: 'Restaurante El Rincón',
@@ -1936,11 +1950,17 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Casa de comidas madrileña de tercera generación. Cocido los miércoles, callos los viernes y una barra donde el vermut de grifo sigue siendo ritual de mediodía. Carta corta, producto de mercado y cero prisa.',
     address: 'Calle de la Cava Baja 23, Madrid',
+    lat: 40.4128, lng: -3.7083,
     hours: 'Mar–Dom 13:00–16:30 · 20:00–23:30',
     phone: '+34 913 65 42 17',
+    whatsapp: '34913654217',
+    email: 'reservas@elrincondelacava.es',
     website: 'elrincondelacava.es',
+    instagram: '@elrincondelacava',
+    facebook: 'ElRinconDeLaCava',
     benefit: '15% de descuento en carta (no incluye menú del día) al mostrar tu perfil Real Travel.',
     conditions: ['Válido de martes a jueves', 'No acumulable con otras promociones', 'Una vez por usuario'],
+    hostStory: 'Don Carmelo abrió la primera barra en 1962 con una paella y diez taburetes. Su nieta Lucía mantiene la receta del cocido intacta y sigue comprando en el Mercado de la Cebada cada madrugada. Tres generaciones, misma cocina, mismo barrio.',
   },
   {
     kind: 'comercio',
@@ -1956,6 +1976,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Obrador familiar donde la loza toledana se sigue pintando a pincel. Piezas únicas de reflejo metálico, encargos personalizados y demostraciones de torno los sábados por la mañana.',
     address: 'Callejón de San Pedro 4, Toledo',
+    lat: 39.8580, lng: -4.0226,
     hours: 'Lun–Sáb 10:00–14:00 · 17:00–20:00',
     phone: '+34 925 22 81 36',
     website: 'ceramicatoledo.es',
@@ -1975,6 +1996,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Moda de autor barcelonesa: diseñadores emergentes del Raval, tiradas cortas y tejidos de proximidad. El escaparate cambia cada semana; lo que ves hoy probablemente no esté mañana.',
     address: 'Carrer dels Tallers 11, Barcelona',
+    lat: 41.3840, lng: 2.1678,
     hours: 'Lun–Sáb 11:00–20:30',
     website: 'boutiquelocalbcn.com',
   },
@@ -1992,6 +2014,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Sala VIP en la T4 de Barajas con duchas, cocina en vivo y cabinas de siesta. Acceso por horas sin necesidad de volar en business: ideal para escalas largas.',
     address: 'Terminal 4, Aeropuerto Adolfo Suárez Madrid-Barajas',
+    lat: 40.4983, lng: -3.5677,
     hours: 'Todos los días 5:00–24:00',
     phone: '+34 902 40 47 04',
     website: 'loungeviajeroplus.com',
@@ -2012,6 +2035,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Azulejos centenarios, jamones colgando y tapas que no han cambiado en cincuenta años: espinacas con garbanzos, montadito de pringá y manzanilla bien fría. De pie y con bullicio, como debe ser.',
     address: 'Calle Mateos Gago 9, Sevilla',
+    lat: 37.3867, lng: -5.9912,
     hours: 'Lun–Dom 12:00–16:00 · 19:30–24:00',
     phone: '+34 954 21 76 50',
     benefit: '25% de descuento en la cuenta de tapas (bebidas no incluidas) al mostrar tu perfil Real Travel.',
@@ -2030,6 +2054,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Treinta puestos de artesanos valencianos bajo una nave modernista: abanicos pintados a mano, cestería de Carrícola y cerámica de Manises. Los productores atienden en persona los fines de semana.',
     address: 'Plaza Redonda s/n, Valencia',
+    lat: 39.4697, lng: -0.3774,
     hours: 'Mar–Dom 10:00–20:00',
     website: 'mercadoartesaniasvalencia.es',
   },
@@ -2037,6 +2062,10 @@ export const COMERCIOS: Comercio[] = [
     kind: 'comercio',
     id: 'murano-glass',
     image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1605883705077-8d3d3cebe78c?w=600',
+      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1605883705077-8d3d3cebe78c?w=200',
     category: 'Artesanía',
     title: 'Fornace Murano Glass',
@@ -2046,12 +2075,16 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Taller artesanal de vidrio soplado en la isla de Murano, activo desde 1923. Maestros vidrieros en cuarta generación producen piezas únicas con técnicas medievales. Cada obra lleva el sello de autenticidad Murano y el nombre del artesano que la creó.',
     address: 'Fondamenta dei Vetrai 47, Murano, Venecia',
+    lat: 45.4570, lng: 12.3533,
     hours: 'Lun–Sáb 9:00–18:00 · Dom 10:00–16:00',
     phone: '+39 041 739 201',
+    email: 'info@muranoglass.com',
     website: 'muranoglass.com',
+    instagram: '@fornacemurano',
     benefit: '15% de descuento en todas las piezas de la colección permanente al mostrar tu perfil Real Travel.',
     conditions: ['Válido para compras superiores a €30', 'No acumulable con otras promociones', 'Válido hasta diciembre 2026', 'Una vez por usuario'],
     destinoId: 'venecia',
+    hostStory: 'La familia Barovier comenzó a soplar vidrio en 1923, cuando el bisabuelo Giovanni montó su primer horno a orillas del canal. Hoy Marco, la cuarta generación, mantiene cada pieza firmada a mano y enseña la técnica a aprendices de todo el mundo.',
   },
   {
     kind: 'comercio',
@@ -2066,6 +2099,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Paseo en góndola de 40 minutos por los canales menores con música en vivo. Las salidas del atardecer recorren tramos sin tráfico turístico; reserva el primer turno de la tarde para la mejor luz.',
     address: 'Embarcadero Santa Maria del Giglio, Venecia',
+    lat: 45.4330, lng: 12.3345,
     hours: 'Lun–Dom 10:00–20:00 (según clima)',
     phone: '+39 041 528 5075',
     website: 'gondolaserenata.it',
@@ -2085,6 +2119,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Nueve mesas y una carta que depende del mercado de Rialto de esa mañana. Mariscos de laguna, vinos del Véneto y dos turnos de cena estrictos. Sin reserva no hay mesa, así de simple.',
     address: 'Calle del Mondo Novo 5801, Venecia',
+    lat: 45.4353, lng: 12.3409,
     hours: 'Mar–Sáb 12:30–14:30 · 19:00–22:00',
     phone: '+39 041 522 7220',
     website: 'osterialletestiere.it',
@@ -2102,6 +2137,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Escondido en un laberinto de San Polo, con un cartel que dice "no pizza, no lasagne, no menú turístico". Cocina veneciana sin concesiones: moeche fritas en temporada y spaghetti con cassopipa.',
     address: 'Rio Terà de le Carampane 1911, Venecia',
+    lat: 45.4381, lng: 12.3287,
     hours: 'Mar–Sáb 12:45–14:30 · 19:30–22:30',
     phone: '+39 041 524 0165',
     website: 'antichecarampane.com',
@@ -2119,6 +2155,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       "Matrimonio ítalo-texano al frente de una de las cocinas más respetadas de Castello. Pescado de la lonja de Chioggia, verduras de Sant'Erasmo y una carta de vinos naturales que vale el viaje.",
     address: 'Campiello de la Pescaria 3968, Venecia',
+    lat: 45.4324, lng: 12.3563,
     hours: 'Vie–Mar 12:45–14:15 · 19:30–22:00',
     phone: '+39 041 522 3812',
     website: 'ristorantealcovo.com',
@@ -2128,6 +2165,11 @@ export const COMERCIOS: Comercio[] = [
     kind: 'comercio',
     id: 'chicha',
     image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
+      'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200',
     category: 'Restaurante',
     title: 'Chicha por Gastón Acurio',
@@ -2137,12 +2179,19 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Cocina cusqueña de autor en una casona colonial de la Plaza Regocijo. Gastón Acurio lleva los platos andinos a otro nivel: rocoto relleno, chicharrón de chancho y postres con cacao de Quillabamba.',
     address: 'Plaza Regocijo 261, 2do piso, Cusco',
+    lat: -13.5169, lng: -71.9807,
     hours: 'Lun–Dom 12:00–23:00',
     phone: '+51 84 240 520',
+    whatsapp: '5184240520',
+    email: 'reservas@chicha.com.pe',
     website: 'chicha.com.pe',
+    instagram: '@chichabygastonacurio',
+    facebook: 'ChichaPorGastonAcurio',
+    tiktok: '@chicha.cusco',
     benefit: '10% de descuento en la cuenta total al mostrar tu perfil Real Travel.',
     conditions: ['Válido de lunes a jueves', 'No incluye bebidas alcohólicas', 'Reserva requerida', 'Una vez por usuario'],
     destinoId: 'cusco',
+    hostStory: 'Gastón Acurio soñaba con un restaurante que honrara los sabores del Cusco sin perder la esencia callejera. Chicha nació en 2010 en una casona de la Plaza Regocijo, con recetas heredadas de cocineras andinas y productos de agricultores del Valle Sagrado.',
   },
   {
     kind: 'comercio',
@@ -2156,6 +2205,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Cooperativa de tejedoras quechuas que trabajan con técnicas prehispánicas. Cada pieza lleva semanas de trabajo manual con tintes naturales. El museo explica la simbología detrás de cada patrón.',
     address: 'Av. El Sol 603, Cusco',
+    lat: -13.5206, lng: -71.9762,
     hours: 'Lun–Sáb 8:00–20:00 · Dom 9:00–18:00',
     phone: '+51 84 228 117',
     website: 'textilescusco.org',
@@ -2173,6 +2223,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Cinco cuadras de puestos bajo techo que los locales llaman "la cocina de Kyoto". Encurtidos de 400 años, dashi fresco, dulces de matcha artesanales y tamagoyaki hecho al momento. Visitá entre semana para evitar las multitudes.',
     address: 'Nishikikoji-dori, Nakagyo-ku, Kyoto',
+    lat: 35.0052, lng: 135.7651,
     hours: 'Lun–Dom 9:00–18:00 (varía por puesto)',
     destinoId: 'kyoto',
   },
@@ -2189,6 +2240,7 @@ export const COMERCIOS: Comercio[] = [
     description:
       'Casa de madera tradicional de 120 años reconvertida en hospedaje boutique. Futones sobre tatami, baño de hinoki y desayuno kaiseki incluido. A cinco minutos a pie del templo Kiyomizu-dera.',
     address: 'Higashiyama-ku, Kiyomizu 2-chome, Kyoto',
+    lat: 34.9972, lng: 135.7834,
     hours: 'Check-in 15:00–20:00 · Check-out 11:00',
     phone: '+81 75 541 7803',
     website: 'machiyakiyomizu.jp',
@@ -2201,43 +2253,73 @@ export const COMERCIOS: Comercio[] = [
   {
     kind: 'comercio', id: 'real-travel-hq',
     image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600',
+      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1496200186974-4293800e2c20?w=200',
     category: 'Agencia de Viajes', title: 'Real Travel — Sede Central',
     location: 'Madrid, España', rating: 4.9, badge: 'Socio Platinum', destinoId: 'madrid',
     description: 'La oficina central de Real Travel donde nació la guía. Aquí diseñamos los itinerarios editoriales, verificamos cada comercio de la Red y organizamos viajes grupales con guías expertos. Atención presencial y servicio de concierge para planificación de viajes a medida.',
-    address: 'Calle Serrano 41, Madrid', hours: 'Lun–Vie 9:00–19:00 · Sáb 10:00–14:00',
-    phone: '+34 914 58 22 10', website: 'realtravel.es',
+    address: 'Calle Serrano 41, Madrid', lat: 40.4228, lng: -3.6894, hours: 'Lun–Vie 9:00–19:00 · Sáb 10:00–14:00',
+    phone: '+34 914 58 22 10',
+    whatsapp: '34914582210',
+    email: 'info@realtravel.es',
+    website: 'realtravel.es',
+    instagram: '@realtravel.es',
+    facebook: 'RealTravelES',
+    tiktok: '@realtravel',
     benefit: 'Consulta de planificación gratuita de 45 min para itinerarios de más de 7 días.',
     conditions: ['Con reserva previa', 'Solo viajes internacionales', 'Una vez por usuario'],
     rutaIds: ['venecia-clasica', 'cusco-historico', 'kyoto-templos', 'roma-antigua', 'singapur-futurista'],
+    hostStory: 'Real Travel nació en 2018 como un blog de viajes de tres amigos madrileños obsesionados con descubrir lo auténtico. Hoy el equipo de 12 personas recorre el mundo verificando cada rincón que recomiendan, porque creen que la mejor guía es la que escribiría un local para un amigo.',
   },
   {
     kind: 'comercio', id: 'explora-andina',
     image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?w=600',
+      'https://images.unsplash.com/photo-1531065208531-4036c0dba3ca?w=600',
+      'https://images.unsplash.com/photo-1494783367193-149034c05e8f?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=200',
     category: 'Tour Operador', title: 'Explora Andina Tours',
     location: 'Cusco, Perú', rating: 4.9, badge: '15% OFF',
     description: 'Operador andino especializado en experiencias con comunidades quechuas del Valle Sagrado. Sus guías son arqueólogos locales que llevan a grupos pequeños por rutas fuera del circuito turístico masivo. Operan el Camino Inca, el Valle Sagrado y expediciones al Ausangate.',
-    address: 'Calle Triunfo 392, Cusco', hours: 'Lun–Sáb 8:00–19:00',
-    phone: '+51 84 232 666', website: 'exploraandina.pe',
+    address: 'Calle Triunfo 392, Cusco', lat: -13.5176, lng: -71.9810, hours: 'Lun–Sáb 8:00–19:00',
+    phone: '+51 84 232 666',
+    whatsapp: '5184232666',
+    email: 'hola@exploraandina.pe',
+    website: 'exploraandina.pe',
+    instagram: '@exploraandina',
+    facebook: 'ExploraAndinaTours',
     benefit: '15% de descuento en tours del Valle Sagrado al mostrar tu perfil Real Travel.',
     conditions: ['Grupos de máximo 8 personas', 'Reserva con 48h de anticipación', 'Una vez por usuario'],
     destinoId: 'cusco',
     rutaIds: ['cusco-historico', 'inca-valle-sagrado'],
+    hostStory: 'Carlos Quispe creció en Chinchero, a 3.700 metros de altura, escuchando las historias de su abuelo sobre los caminos incas. Estudió arqueología en Cusco y fundó Explora Andina para que los viajeros pudieran recorrer esos mismos senderos con los que él creció.',
   },
   {
     kind: 'comercio', id: 'venezia-elite-tours',
     image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=600',
+      'https://images.unsplash.com/photo-1534113414509-0eec2bfb493f?w=600',
+    ],
     logo: 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=200',
     category: 'Tour Operador', title: 'Venezia Elite Tours',
     location: 'Venecia, Italia', rating: 4.8, badge: '10% OFF',
     description: 'Guías venezianos locales que muestran la ciudad que no aparece en los mapas de turistas: iglesias sin colas, cortes interiores y osterie de barrio. Sus recorridos se diseñan con acceso privado a palacetes y archivos históricos inaccesibles al público general.',
-    address: 'Fondamenta Zattere 1484, Venecia', hours: 'Lun–Dom 9:00–18:00',
-    phone: '+39 041 241 3388', website: 'veneziaelite.it',
+    address: 'Fondamenta Zattere 1484, Venecia', lat: 45.4308, lng: 12.3279, hours: 'Lun–Dom 9:00–18:00',
+    phone: '+39 041 241 3388',
+    email: 'info@veneziaelite.it',
+    website: 'veneziaelite.it',
+    instagram: '@veneziaelitetours',
     benefit: '10% de descuento en tours de medio día al mostrar tu perfil Real Travel.',
     conditions: ['Grupos máximo 6 personas', 'Tour en español disponible con reserva', 'Una vez por usuario'],
     destinoId: 'venecia',
     rutaIds: ['venecia-clasica', 'venecia-islas'],
+    hostStory: 'Alessandro nació y creció en el sestiere de Dorsoduro. Después de estudiar historia del arte en Ca\' Foscari, decidió que la mejor forma de proteger Venecia era mostrarla bien. Sus tours evitan las multitudes y priorizan artesanos, iglesias vacías y bacari de barrio.',
   },
   {
     kind: 'comercio', id: 'sawasdee-bangkok',
@@ -2246,7 +2328,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Tour Operador', title: 'Sawadee Bangkok Experiences',
     location: 'Bangkok, Tailandia', rating: 4.8, badge: '20% OFF',
     description: 'Operadora tailandesa con guías bilingües especializados en cultura budista y gastronomía callejera. Sus tours nocturnos de mercados flotantes y templos iluminados son los mejor valorados de la ciudad. También organizan escapadas de un día al mercado de Damnoen y a Ayutthaya.',
-    address: '88 Silom Road, Bangkok', hours: 'Lun–Dom 7:00–21:00',
+    address: '88 Silom Road, Bangkok', lat: 13.7260, lng: 100.5246, hours: 'Lun–Dom 7:00–21:00',
     phone: '+66 2 234 5678', website: 'sawasdee-bangkok.th',
     benefit: '20% de descuento en el tour de templos del amanecer al mostrar tu perfil Real Travel.',
     conditions: ['Tour sale a las 6:00 am', 'Ropa que cubra hombros y rodillas', 'Una vez por usuario'],
@@ -2260,7 +2342,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Tour Operador', title: 'Dolce Vita Roma Tours',
     location: 'Roma, Italia', rating: 4.7, badge: '10% OFF',
     description: 'Tours de Roma con historiadores del arte de la Universidad de La Sapienza. Acceso temprano al Vaticano (7:30 am antes de la apertura), visita privada nocturna a la Galería Borghese y recorridos temáticos por el Roma de Caravaggio. Sin guías generalistas: solo especialistas en períodos concretos.',
-    address: 'Via della Croce 23, Roma', hours: 'Lun–Sáb 8:00–19:00',
+    address: 'Via della Croce 23, Roma', lat: 41.9068, lng: 12.4789, hours: 'Lun–Sáb 8:00–19:00',
     phone: '+39 06 678 2280', website: 'dolcevitaroma.com',
     benefit: '10% de descuento en tours de acceso temprano al Vaticano al mostrar tu perfil Real Travel.',
     conditions: ['Reserva mínima 72h antes', 'Grupos de máximo 8 personas', 'Una vez por usuario'],
@@ -2274,7 +2356,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Tour Operador', title: 'Canal Amsterdam Tours',
     location: 'Ámsterdam, Países Bajos', rating: 4.7, badge: '15% OFF',
     description: 'Paseos en barco privado por los canales patrimoniales de Ámsterdam con historiador a bordo. Sus barcos eléctricos silenciosos permiten entrar en los canales más estrechos prohibidos para los barcos turísticos estándar. También ofrecen tours en bicicleta por los polders fuera de la ciudad.',
-    address: 'Prinsengracht 791, Ámsterdam', hours: 'Lun–Dom 10:00–20:00',
+    address: 'Prinsengracht 791, Ámsterdam', lat: 52.3602, lng: 4.8839, hours: 'Lun–Dom 10:00–20:00',
     phone: '+31 20 625 7788', website: 'canalamsterdam.nl',
     benefit: '15% de descuento en paseos privados de 90 minutos al mostrar tu perfil Real Travel.',
     conditions: ['Máximo 8 pasajeros por barco', 'Reserva 24h antes', 'Una vez por usuario'],
@@ -2288,7 +2370,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Agencia de Viajes', title: 'Fado & Lisboa Tours',
     location: 'Lisboa, Portugal', rating: 4.8, badge: '10% OFF',
     description: 'La única agencia de Lisboa que combina recorridos culturales con sesiones de fado en casas de fado históricas (no las turísticas). Guías que llevan treinta años en el barrio de Alfama organizan paseos por los miradores secretos y las tascas donde los fadistas cenan después de actuar.',
-    address: 'Rua das Portas de Santo Antão 40, Lisboa', hours: 'Lun–Sáb 10:00–20:00',
+    address: 'Rua das Portas de Santo Antão 40, Lisboa', lat: 38.7179, lng: -9.1392, hours: 'Lun–Sáb 10:00–20:00',
     phone: '+351 21 346 8900', website: 'fadotours.pt',
     benefit: '10% de descuento en la experiencia completa fado + cena al mostrar tu perfil Real Travel.',
     conditions: ['Mínimo 2 personas', 'Reserva con 48h de anticipación', 'Una vez por usuario'],
@@ -2302,7 +2384,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Tour Operador', title: 'Sakura Kyoto Experience',
     location: 'Kyoto, Japón', rating: 4.9, badge: '10% OFF',
     description: 'Tours de Kyoto conducidos por monjes zen y profesoras de ceremonia del té en retiro parcial. La sesión de meditación en Ryōan-ji antes de abrir al público y el taller privado de caligrafía en un templo del siglo XII son experiencias que no tienen precio de mercado.',
-    address: 'Gojo-dori 502, Higashiyama-ku, Kyoto', hours: 'Lun–Dom 7:00–19:00',
+    address: 'Gojo-dori 502, Higashiyama-ku, Kyoto', lat: 34.9985, lng: 135.7799, hours: 'Lun–Dom 7:00–19:00',
     phone: '+81 75 532 8800', website: 'sakurakyoto.jp',
     benefit: '10% de descuento en la experiencia zen matutina al mostrar tu perfil Real Travel.',
     conditions: ['Grupo máximo 6 personas', 'Indumentaria tradicional provista', 'Una vez por usuario'],
@@ -2316,7 +2398,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Agencia de Viajes', title: 'Merlion Premium Concierge',
     location: 'Singapur', rating: 4.8, badge: 'Priority Access',
     description: 'Concierge de lujo para viajeros en Singapur: acceso prioritario al bar infinito de Marina Bay Sands, reservas de hawker centres con colas de horas y traslados privados en Tesla entre atracciones. Especializados en maximizar tres o cuatro días en la ciudad-estado más eficiente de Asia.',
-    address: '10 Bayfront Avenue, Marina Bay Sands, Singapur', hours: 'Lun–Dom 9:00–21:00',
+    address: '10 Bayfront Avenue, Marina Bay Sands, Singapur', lat: 1.2834, lng: 103.8607, hours: 'Lun–Dom 9:00–21:00',
     phone: '+65 6688 8888', website: 'merlion-concierge.sg',
     benefit: 'Check-in express y upgrade de habitación al mostrar tu perfil Real Travel (sujeto a disponibilidad).',
     conditions: ['Reserva mínima 72h antes', 'Válido en temporada media y baja', 'Una vez por usuario'],
@@ -2330,7 +2412,7 @@ export const COMERCIOS: Comercio[] = [
     category: 'Agencia de Viajes', title: 'Global Adventures',
     location: 'Madrid, España', rating: 4.6, badge: '5% OFF', destinoId: 'madrid',
     description: 'Agencia independiente madrileña especializada en viajes de aventura y cultura a destinos fuera del circuito masivo. Gestionan los permisos del Camino Inca, las expediciones al Valle Sagrado y los tours de inmersión en comunidades rurales de Tailandia y Japón. Equipos pequeños, impacto mínimo.',
-    address: 'Calle Fuencarral 89, Madrid', hours: 'Lun–Vie 9:30–19:30 · Sáb 10:00–14:00',
+    address: 'Calle Fuencarral 89, Madrid', lat: 40.4250, lng: -3.6983, hours: 'Lun–Vie 9:30–19:30 · Sáb 10:00–14:00',
     phone: '+34 915 23 44 67', website: 'globaladventures.es',
     benefit: '5% de descuento adicional en cualquier viaje combinado de más de 10 días.',
     conditions: ['No acumulable con otras promociones', 'Válido en reservas ≥€800', 'Una vez por usuario'],
@@ -2539,6 +2621,15 @@ export const findComercio = (id: string) => COMERCIOS.find(c => c.id === id)
 export const lugaresDeDestino = (destinoId: string) => LUGARES.filter(l => l.destinoId === destinoId)
 export const comerciosDeDestino = (destinoId: string) => COMERCIOS.filter(c => c.destinoId === destinoId)
 export const comerciosConRuta = (rutaId: string) => COMERCIOS.filter(c => c.rutaIds?.includes(rutaId))
+
+export function routeCreatorComercio(rutaId: string): Comercio | null {
+  const creators = comerciosConRuta(rutaId)
+  return creators.length > 0 ? creators[0] : null
+}
+
+export function routeCreator(rutaId: string): string {
+  return routeCreatorComercio(rutaId)?.title ?? 'Real Travel'
+}
 
 /** Resuelve un id de favorito contra los tres catálogos. */
 export const findAny = (id: string): Lugar | Destino | Comercio | undefined =>

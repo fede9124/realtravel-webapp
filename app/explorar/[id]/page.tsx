@@ -5,8 +5,10 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { RouteCard } from '@/components/ui/RouteCard'
+import { ImageCarousel } from '@/components/ui/ImageCarousel'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { useState, useMemo } from 'react'
+import { useScrollReveal } from '@/hooks/useScrollReveal'
 import {
   ArrowLeft,
   ShareFat,
@@ -18,14 +20,12 @@ import {
   Lightbulb,
   Star,
   ArrowSquareOut,
-  CaretLeft,
-  CaretRight,
   NavigationArrow,
 } from '@phosphor-icons/react'
 import { use } from 'react'
 import { notFound } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
-import { findLugar, findDestino, LUGARES, RUTAS, type Lugar } from '@/lib/data'
+import { findLugar, findDestino, LUGARES, RUTAS, routeCreatorComercio, type Lugar } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { LoginPrompt } from '@/components/ui/LoginPrompt'
@@ -48,7 +48,6 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
   const [liked, setLiked] = useState(false)
   const [downloaded, setDownloaded] = useState(false)
   const [activeTab, setActiveTab] = useState('descripcion')
-  const [carouselIdx, setCarouselIdx] = useState(0)
   const { favorites, toggleFavorite } = useFavorites()
   const { showLogin, loginMessage, requireAuth, closeLogin } = useRequireAuth()
 
@@ -70,34 +69,20 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
 
   const related = LUGARES.filter(l => l.id !== lugar.id && l.location === lugar.location).slice(0, 4)
 
-  const prev = () => setCarouselIdx(i => (i === 0 ? allImages.length - 1 : i - 1))
-  const next = () => setCarouselIdx(i => (i === allImages.length - 1 ? 0 : i + 1))
-
   const directionsUrl = lugar.lat && lugar.lng
     ? `https://www.google.com/maps/dir/?api=1&destination=${lugar.lat},${lugar.lng}`
     : null
 
+  const revealRef = useScrollReveal()
+
   return (
     <div className="min-h-[100dvh]" style={{ background: 'var(--color-surface)' }}>
       {/* ── Carousel hero ── */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ height: 'clamp(280px, 45vw, 440px)', viewTransitionName: `card-${lugar.id}` } as React.CSSProperties}
+      <ImageCarousel
+        images={allImages}
+        alt={lugar.title}
+        style={{ viewTransitionName: `card-${lugar.id}` } as React.CSSProperties}
       >
-        {allImages.map((src, i) => (
-          <Image
-            key={src}
-            src={src.replace('w=600', 'w=1200')}
-            alt={i === 0 ? lugar.title : `${lugar.title} — foto ${i + 1}`}
-            fill
-            priority={i === 0}
-            className="object-cover transition-opacity duration-500"
-            sizes="100vw"
-            style={{ opacity: i === carouselIdx ? 1 : 0, zIndex: i === carouselIdx ? 1 : 0 }}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/30" style={{ zIndex: 2 }} />
-
         {/* Back button */}
         <div className="absolute top-6 left-5 sm:left-8 z-10" style={{ zIndex: 3 }}>
           <TransitionLink
@@ -123,45 +108,7 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
             Compartir
           </button>
         </div>
-
-        {/* Carousel controls */}
-        {allImages.length > 1 && (
-          <>
-            <button
-              onClick={prev}
-              aria-label="Imagen anterior"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-all hover:bg-white active:scale-95"
-              style={{ zIndex: 3 }}
-            >
-              <CaretLeft size={18} weight="bold" style={{ color: 'var(--color-text-primary)' }} />
-            </button>
-            <button
-              onClick={next}
-              aria-label="Imagen siguiente"
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm transition-all hover:bg-white active:scale-95"
-              style={{ zIndex: 3 }}
-            >
-              <CaretRight size={18} weight="bold" style={{ color: 'var(--color-text-primary)' }} />
-            </button>
-
-            {/* Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2" style={{ zIndex: 3 }}>
-              {allImages.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCarouselIdx(i)}
-                  aria-label={`Ir a imagen ${i + 1}`}
-                  className="w-2 h-2 rounded-full transition-all duration-300"
-                  style={{
-                    background: i === carouselIdx ? 'white' : 'rgba(255,255,255,0.5)',
-                    transform: i === carouselIdx ? 'scale(1.3)' : 'scale(1)',
-                  }}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      </ImageCarousel>
 
       {/* ── Main content — 2 columns ── */}
       <div className="px-5 sm:px-8 lg:px-12 py-10 w-full">
@@ -343,7 +290,8 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* ── Associated routes ── */}
+        {/* ── Associated routes + related ── */}
+        <div ref={revealRef}>
         {associatedRoutes.length > 0 && (
           <section aria-labelledby="heading-rutas" className="mt-14">
             <h2
@@ -363,11 +311,14 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
               {associatedRoutes.map(ruta => {
                 const destino = findDestino(ruta.destinoId)
+                const creator = routeCreatorComercio(ruta.id)
                 return (
                   <RouteCard
                     key={ruta.id}
                     {...ruta}
                     destinoTitle={destino?.title}
+                    createdBy={creator?.title ?? 'Real Travel'}
+                    createdByHref={creator ? `/red-travel/${creator.id}` : undefined}
                   />
                 )
               })}
@@ -399,6 +350,7 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
             </div>
           </section>
         )}
+        </div>
       </div>
 
       <LoginPrompt open={showLogin} onClose={closeLogin} message={loginMessage} />

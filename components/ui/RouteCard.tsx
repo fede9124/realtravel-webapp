@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState } from 'react'
 import { BookmarkSimple, Path, ImageBroken } from '@phosphor-icons/react'
 import { TransitionLink } from '@/components/ui/TransitionLink'
@@ -14,6 +15,8 @@ const DIFFICULTY_COLOR: Record<Ruta['difficulty'], string> = {
 
 interface RouteCardProps extends Ruta {
   destinoTitle?: string
+  createdBy?: string
+  createdByHref?: string
   isFavorite?: boolean
   onFavoriteToggle?: () => void
   className?: string
@@ -28,6 +31,8 @@ export function RouteCard({
   title,
   destinoId,
   destinoTitle,
+  createdBy,
+  createdByHref,
   difficulty,
   duration,
   distance,
@@ -144,6 +149,23 @@ export function RouteCard({
           <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>· {stops.length} paradas</span>
         </div>
       </TransitionLink>
+      {createdBy && (
+        <p className="text-[11px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+          Creada por{' '}
+          {createdByHref ? (
+            <Link
+              href={createdByHref}
+              onClick={e => e.stopPropagation()}
+              className="hover:underline"
+              style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}
+            >
+              {createdBy}
+            </Link>
+          ) : (
+            <span style={{ fontWeight: 600 }}>{createdBy}</span>
+          )}
+        </p>
+      )}
     </article>
   )
 }

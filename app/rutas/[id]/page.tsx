@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Clock, Path, MapPin, Star, DoorOpen, Timer, BookmarkSimple } from '@phosphor-icons/react'
-import { findRuta, findLugar, findDestino } from '@/lib/data'
+import { findRuta, findLugar, findDestino, routeCreatorComercio } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
 
 const RouteMapView = dynamic(() => import('@/components/map/RouteMapView'), {
@@ -36,6 +36,7 @@ export default function RutaPage({ params }: { params: Promise<{ id: string }> }
 
   const destino = findDestino(ruta.destinoId)
   const stops = ruta.stops.map(findLugar).filter(Boolean) as NonNullable<ReturnType<typeof findLugar>>[]
+  const creator = routeCreatorComercio(ruta.id)
 
   function handleStopClick(idx: number) {
     setSelectedIdx(prev => prev === idx ? null : idx)
@@ -111,6 +112,16 @@ export default function RutaPage({ params }: { params: Promise<{ id: string }> }
               </span>
             ))}
           </div>
+          <p className="mt-3 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+            Creada por{' '}
+            {creator ? (
+              <Link href={`/red-travel/${creator.id}`} className="hover:underline" style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                {creator.title}
+              </Link>
+            ) : (
+              <span style={{ fontWeight: 600 }}>Real Travel</span>
+            )}
+          </p>
         </div>
 
         {/* Stops list */}

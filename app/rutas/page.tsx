@@ -6,7 +6,7 @@ import { SearchBar } from '@/components/ui/SearchBar'
 import { RouteCard } from '@/components/ui/RouteCard'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
-import { RUTAS, findDestino } from '@/lib/data'
+import { RUTAS, findDestino, routeCreatorComercio } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
 import { SingleChip, FilterGroup, FiltrosButton, FilterModal, DropdownFilter } from '@/components/ui/TaxonomyFilters'
 
@@ -164,11 +164,14 @@ export default function RutasPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
             {filtered.map((ruta, i) => {
               const destino = findDestino(ruta.destinoId)
+              const creator = routeCreatorComercio(ruta.id)
               return (
                 <RouteCard
                   key={ruta.id}
                   {...ruta}
                   destinoTitle={destino?.title}
+                  createdBy={creator?.title ?? 'Real Travel'}
+                  createdByHref={creator ? `/red-travel/${creator.id}` : undefined}
                   revealDelay={i * 30}
                   priority={i === 0}
                   isFavorite={favorites.has(ruta.id)}

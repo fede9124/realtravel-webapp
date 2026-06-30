@@ -14,7 +14,7 @@ import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useNearby, haversineKm } from '@/hooks/useNearby'
-import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findDestino as findDest } from '@/lib/data'
+import { LUGARES as ALL_LUGARES, DESTINOS as ALL_DESTINOS, RUTAS, findDestino as findDest, routeCreatorComercio } from '@/lib/data'
 import { useFilters, TaxonomyChips, TaxonomyModal, applyTaxonomyFilters } from '@/components/ui/TaxonomyFilters'
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
@@ -290,7 +290,7 @@ export default function ExplorarPage() {
 
       {/* Tabs */}
       <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="100">
-        <Tabs tabs={TABS} activeId={activeTab} onChange={id => setActiveTab(id as typeof activeTab)} />
+        <Tabs tabs={TABS} activeId={activeTab} onChange={id => setActiveTab(id as typeof activeTab)} size="lg" />
       </div>
 
       {/* Sin resultados */}
@@ -385,11 +385,14 @@ export default function ExplorarPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 360px))', gap: '24px' }}>
               {filteredRutas.map((ruta, i) => {
                 const destino = findDest(ruta.destinoId)
+                const creator = routeCreatorComercio(ruta.id)
                 return (
                   <RouteCard
                     key={ruta.id}
                     {...ruta}
                     destinoTitle={destino?.title}
+                    createdBy={creator?.title ?? 'Real Travel'}
+                    createdByHref={creator ? `/red-travel/${creator.id}` : undefined}
                     revealDelay={i * 30}
                     isFavorite={favorites.has(ruta.id)}
                     onFavoriteToggle={() => toggleFavorite(ruta.id)}

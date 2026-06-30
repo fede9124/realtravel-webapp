@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
-import { findAny, hrefFor, RUTAS, findLugar, findDestino as findDest, type Lugar, type Destino, type Comercio } from '@/lib/data'
+import { findAny, hrefFor, RUTAS, findLugar, findDestino as findDest, routeCreatorComercio, type Lugar, type Destino, type Comercio } from '@/lib/data'
 
 const TABS = [
   { id: 'lugares', label: 'Lugares', kind: 'lugar' },
@@ -152,6 +152,7 @@ function RutasList({ rutas, favorites, toggleFavorite }: RutasListProps) {
       {rutas.map(ruta => {
         const destino = findDest(ruta.destinoId)
         const stops = ruta.stops.map(findLugar).filter(Boolean)
+        const creator = routeCreatorComercio(ruta.id)
         return (
           <div
             key={ruta.id}
@@ -194,8 +195,23 @@ function RutasList({ rutas, favorites, toggleFavorite }: RutasListProps) {
                 </div>
               </div>
             </div>
-            <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
+            <p className="text-sm mb-1" style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
               {ruta.description}
+            </p>
+            <p className="text-[11px] mb-4" style={{ color: 'var(--color-text-muted)' }}>
+              Creada por{' '}
+              {creator ? (
+                <Link
+                  href={`/red-travel/${creator.id}`}
+                  onClick={e => e.stopPropagation()}
+                  className="hover:underline"
+                  style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}
+                >
+                  {creator.title}
+                </Link>
+              ) : (
+                <span style={{ fontWeight: 600 }}>Real Travel</span>
+              )}
             </p>
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span
