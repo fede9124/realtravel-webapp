@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { List, AirplaneTilt } from '@phosphor-icons/react'
+import { TransitionLink } from '@/components/ui/TransitionLink'
 import { SideNav } from './SideNav'
 import { AuthContext, useAuthProvider } from '@/hooks/useAuth'
 
@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <List size={20} weight="regular" aria-hidden="true" />
           </button>
 
-          <Link
+          <TransitionLink
             href="/explorar"
             className="flex items-center gap-2"
             aria-label="Real Travel — inicio"
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               Real Travel
             </span>
-          </Link>
+          </TransitionLink>
 
           {/* Mirror of the hamburger for optical balance */}
           <div className="w-11" aria-hidden="true" />

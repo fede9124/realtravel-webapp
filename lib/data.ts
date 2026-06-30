@@ -125,6 +125,8 @@ export interface Comercio {
   hostStory?: string
   lat?: number
   lng?: number
+  youtubeUrl?: string
+  pdfs?: { title: string; url: string }[]
 }
 
 // ─── Lugares (50 totales) ─────────────────────────────────────────────────────
@@ -1961,6 +1963,8 @@ export const COMERCIOS: Comercio[] = [
     benefit: '15% de descuento en carta (no incluye menú del día) al mostrar tu perfil Real Travel.',
     conditions: ['Válido de martes a jueves', 'No acumulable con otras promociones', 'Una vez por usuario'],
     hostStory: 'Don Carmelo abrió la primera barra en 1962 con una paella y diez taburetes. Su nieta Lucía mantiene la receta del cocido intacta y sigue comprando en el Mercado de la Cebada cada madrugada. Tres generaciones, misma cocina, mismo barrio.',
+    youtubeUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+    pdfs: [{ title: 'Carta y tarifario', url: '/docs/rincon-tarifario.pdf' }],
   },
   {
     kind: 'comercio',
@@ -2192,6 +2196,8 @@ export const COMERCIOS: Comercio[] = [
     conditions: ['Válido de lunes a jueves', 'No incluye bebidas alcohólicas', 'Reserva requerida', 'Una vez por usuario'],
     destinoId: 'cusco',
     hostStory: 'Gastón Acurio soñaba con un restaurante que honrara los sabores del Cusco sin perder la esencia callejera. Chicha nació en 2010 en una casona de la Plaza Regocijo, con recetas heredadas de cocineras andinas y productos de agricultores del Valle Sagrado.',
+    youtubeUrl: 'https://www.youtube.com/watch?v=9bZkp7q19f0',
+    pdfs: [{ title: 'Carta del restaurante', url: '/docs/chicha-carta.pdf' }],
   },
   {
     kind: 'comercio',
@@ -2273,6 +2279,8 @@ export const COMERCIOS: Comercio[] = [
     conditions: ['Con reserva previa', 'Solo viajes internacionales', 'Una vez por usuario'],
     rutaIds: ['venecia-clasica', 'cusco-historico', 'kyoto-templos', 'roma-antigua', 'singapur-futurista'],
     hostStory: 'Real Travel nació en 2018 como un blog de viajes de tres amigos madrileños obsesionados con descubrir lo auténtico. Hoy el equipo de 12 personas recorre el mundo verificando cada rincón que recomiendan, porque creen que la mejor guía es la que escribiría un local para un amigo.',
+    youtubeUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+    pdfs: [{ title: 'Dossier institucional', url: '/docs/real-travel-dossier.pdf' }],
   },
   {
     kind: 'comercio', id: 'explora-andina',

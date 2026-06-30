@@ -5,6 +5,7 @@ import { use, useState } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { TransitionLink } from '@/components/ui/TransitionLink'
 import { ArrowLeft, Clock, Path, MapPin, Star, DoorOpen, Timer, BookmarkSimple } from '@phosphor-icons/react'
 import { findRuta, findLugar, findDestino, routeCreatorComercio } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -53,14 +54,14 @@ export default function RutaPage({ params }: { params: Promise<{ id: string }> }
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b flex-shrink-0" style={{ borderColor: 'var(--color-border)' }}>
           <div className="flex items-center justify-between mb-5">
-            <Link
+            <TransitionLink
               href="/explorar"
               className="inline-flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-70"
               style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)' }}
             >
               <ArrowLeft size={13} aria-hidden="true" />
               Explorar
-            </Link>
+            </TransitionLink>
             <button
               onClick={() => toggleFavorite(ruta.id)}
               aria-label={favorites.has(ruta.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}

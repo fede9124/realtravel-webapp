@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { TransitionLink } from '@/components/ui/TransitionLink'
 import {
   Compass, MapTrifold, Globe, Heart,
   CaretLeft, CaretRight, X,
@@ -131,7 +131,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             transition: `padding 0.3s ${EASE}, gap 0.3s ${EASE}`,
           }}
         >
-          <Link
+          <TransitionLink
             href="/explorar"
             onClick={isMobile ? onMobileClose : undefined}
             aria-label="Real Travel — inicio"
@@ -158,7 +158,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
                 </span>
               </CollapsibleLabel>
             </div>
-          </Link>
+          </TransitionLink>
 
           {isMobile && (
             <button
@@ -186,7 +186,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             const active = isActive(href)
 
             return (
-              <Link
+              <TransitionLink
                 key={href}
                 href={href}
                 onClick={isMobile ? onMobileClose : undefined}
@@ -215,7 +215,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
                     {label}
                   </span>
                 </CollapsibleLabel>
-              </Link>
+              </TransitionLink>
             )
           })}
         </nav>
@@ -230,7 +230,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             transition: `padding 0.3s ${EASE}`,
           }}
         >
-          <Link
+          <TransitionLink
             href="/perfil"
             onClick={isMobile ? onMobileClose : undefined}
             aria-label={isLoggedIn ? 'Ver perfil' : 'Iniciar sesión'}
@@ -265,7 +265,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
                 {isLoggedIn ? 'Ver perfil' : 'Accedé a tu cuenta'}
               </span>
             </CollapsibleLabel>
-          </Link>
+          </TransitionLink>
 
           {!isMobile && (
             <button

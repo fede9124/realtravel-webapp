@@ -13,12 +13,17 @@ import { notFound } from 'next/navigation'
 import {
   ArrowLeft, ArrowRight, MapPin, Clock, Phone, Globe, Tag, CheckCircle, Check, Path,
   BookmarkSimple, Heart, InstagramLogo, FacebookLogo, TiktokLogo,
-  WhatsappLogo, EnvelopeSimple,
+  WhatsappLogo, EnvelopeSimple, FilePdf, DownloadSimple,
 } from '@phosphor-icons/react'
 import { findComercio, findRuta } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import { LoginPrompt } from '@/components/ui/LoginPrompt'
+
+function youtubeId(url: string): string {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{11})/)
+  return match ? match[1] : url
+}
 
 function socialUrl(platform: string, handle: string): string {
   if (handle.startsWith('http')) return handle
@@ -250,6 +255,64 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                     </div>
                   )}
                 </div>
+
+                {/* Video de YouTube */}
+                {comercio.youtubeUrl && (
+                  <div
+                    className="rounded-2xl overflow-hidden"
+                    style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                  >
+                    <div style={{ aspectRatio: '16/9', position: 'relative' }}>
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${youtubeId(comercio.youtubeUrl)}`}
+                        title={`Video de ${comercio.title}`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full"
+                        style={{ border: 'none' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Documentos PDF */}
+                {comercio.pdfs && comercio.pdfs.length > 0 && (
+                  <div
+                    className="rounded-2xl p-7 flex flex-col gap-4"
+                    style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                  >
+                    <h2
+                      className="text-sm font-bold uppercase tracking-widest"
+                      style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                    >
+                      Documentos
+                    </h2>
+                    <div className="flex flex-col gap-2.5">
+                      {comercio.pdfs.map(pdf => (
+                        <a
+                          key={pdf.url}
+                          href={pdf.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3.5 rounded-xl transition-colors hover:opacity-80"
+                          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                        >
+                          <div
+                            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ background: 'var(--color-crimson-light)' }}
+                          >
+                            <FilePdf size={17} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                          </div>
+                          <span className="flex-1 text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                            {pdf.title}
+                          </span>
+                          <DownloadSimple size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               /* Host story tab */
