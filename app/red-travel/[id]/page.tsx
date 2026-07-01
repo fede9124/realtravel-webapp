@@ -147,10 +147,10 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
 
       {/* Content */}
       <div className="px-5 sm:px-8 lg:px-12 w-full">
-        <div className={`grid grid-cols-1 ${comercio.benefit ? 'lg:grid-cols-3' : ''} gap-10 py-10`}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 py-10">
 
           {/* Left — info */}
-          <div className={`${comercio.benefit ? 'lg:col-span-2' : ''} flex flex-col gap-8`}>
+          <div className="lg:col-span-2 flex flex-col gap-8">
 
             {/* Tabs (only if host story exists) */}
             {hasHostStory && (
@@ -342,11 +342,11 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
           </div>
 
           {/* Right — benefit card + action box + contact */}
-          {comercio.benefit && (
-            <div className="lg:col-span-1">
-              <div className="sticky top-6 flex flex-col gap-5">
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 flex flex-col gap-5">
 
-                {/* Benefit card */}
+              {/* Benefit card */}
+              {comercio.benefit && (
                 <div className="rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
                   <div className="px-7 py-6" style={{ background: 'var(--color-crimson)' }}>
                     <div className="flex items-center gap-2 mb-2">
@@ -399,8 +399,9 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                     </button>
                   </div>
                 </div>
+              )}
 
-                {/* Action box */}
+              {/* Action box */}
                 <div
                   className="rounded-2xl p-5 flex flex-col gap-4"
                   style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
@@ -485,9 +486,8 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                   </div>
                 )}
 
-              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
