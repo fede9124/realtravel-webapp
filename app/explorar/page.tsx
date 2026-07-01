@@ -140,12 +140,6 @@ function DestinoCarousel() {
               <span className="text-white font-bold text-sm">{d.rating}</span>
               <span className="text-white/55 text-xs">({d.reviewCount.toLocaleString('es')})</span>
             </div>
-            <span
-              className="text-sm font-semibold text-white px-4 py-2 rounded-full transition-all group-hover:bg-white/25"
-              style={{ background: 'rgba(255,255,255,0.14)', backdropFilter: 'blur(6px)', fontFamily: 'var(--font-family-heading)' }}
-            >
-              Ver destino →
-            </span>
           </div>
         </div>
       </TransitionLink>
