@@ -7,7 +7,7 @@ import { TransitionLink } from '@/components/ui/TransitionLink'
 import { RouteCard } from '@/components/ui/RouteCard'
 import { ImageCarousel } from '@/components/ui/ImageCarousel'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 import {
   ArrowLeft,
@@ -16,11 +16,14 @@ import {
   Bookmark,
   Heart,
   MapPin,
-  Info,
   Lightbulb,
   Star,
   ArrowSquareOut,
   NavigationArrow,
+  Headphones,
+  Play,
+  Pause,
+  ArrowCounterClockwise,
 } from '@phosphor-icons/react'
 import { use } from 'react'
 import { notFound } from 'next/navigation'
@@ -41,6 +44,7 @@ const DETAIL_TABS: TabItem[] = [
   { id: 'descripcion', label: 'Descripción' },
   { id: 'mas-info', label: 'Más información' },
   { id: 'consejos', label: 'Consejos prácticos' },
+  { id: 'audioguia', label: 'Audioguía' },
 ]
 
 export default function LugarDetallePage({ params }: { params: Promise<{ id: string }> }) {
@@ -199,6 +203,10 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
                     ))}
                   </ul>
                 )}
+
+                {activeTab === 'audioguia' && (
+                  <AudioPlayer title={lugar.title} description={lugar.description} />
+                )}
               </div>
             </div>
 
@@ -354,6 +362,224 @@ export default function LugarDetallePage({ params }: { params: Promise<{ id: str
       </div>
 
       <LoginPrompt open={showLogin} onClose={closeLogin} message={loginMessage} />
+    </div>
+  )
+}
+
+// ─── AudioPlayer ──────────────────────────────────────────────────────────────
+
+const WAVEFORM_HEIGHTS = [0.5, 0.8, 1, 0.6, 0.9, 0.7, 1, 0.5, 0.8, 0.6, 1, 0.7]
+const CHARS_PER_SEC = 13.5 // aprox. para español a rate 0.92
+
+function fmt(secs: number) {
+  const m = Math.floor(secs / 60)
+  const s = Math.floor(secs % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+function AudioPlayer({ title, description }: { title: string; description: string }) {
+  const [status, setStatus] = useState<'idle' | 'playing' | 'paused'>('idle')
+  const [progress, setProgress] = useState(0)
+  const startOffsetRef = useRef(0)
+  const barRef = useRef<HTMLDivElement>(null)
+
+  const audioText = `${title}. ${description}`
+  const totalSecs = audioText.length / CHARS_PER_SEC
+  const currentSecs = progress * totalSecs
+
+  useEffect(() => () => { window.speechSynthesis?.cancel() }, [])
+
+  function startFrom(offset: number) {
+    window.speechSynthesis.cancel()
+    startOffsetRef.current = offset
+    const utt = new SpeechSynthesisUtterance(audioText.slice(offset))
+    utt.lang = 'es'
+    utt.rate = 0.92
+    utt.onboundary = e => setProgress((offset + e.charIndex) / audioText.length)
+    utt.onend = () => { setStatus('idle'); setProgress(1) }
+    utt.onerror = e => { if (e.error !== 'interrupted') setStatus('idle') }
+    window.speechSynthesis.speak(utt)
+    setStatus('playing')
+    setProgress(offset / audioText.length)
+  }
+
+  function handlePlayPause() {
+    if (!window.speechSynthesis) return
+    if (status === 'idle') { startFrom(Math.floor(progress * audioText.length)); return }
+    if (status === 'paused') { window.speechSynthesis.resume(); setStatus('playing'); return }
+    window.speechSynthesis.pause()
+    setStatus('paused')
+  }
+
+  function handleRestart() {
+    if (!window.speechSynthesis) return
+    startFrom(0)
+  }
+
+  function handleSeek(e: React.MouseEvent<HTMLDivElement>) {
+    if (!barRef.current) return
+    const rect = barRef.current.getBoundingClientRect()
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const offset = Math.floor(ratio * audioText.length)
+    if (status !== 'idle') {
+      startFrom(offset)
+    } else {
+      setProgress(ratio)
+    }
+  }
+
+  const playing = status === 'playing'
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Player card */}
+      <div
+        className="rounded-2xl p-6 flex flex-col gap-5"
+        style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border)' }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <Headphones size={15} weight="fill" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Audioguía
+          </span>
+        </div>
+
+        {/* Track info */}
+        <div>
+          <p className="font-semibold text-sm leading-snug" style={{ color: 'var(--color-text-primary)' }}>
+            {title}
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+            {playing ? 'Reproduciendo...' : status === 'paused' ? 'En pausa' : `${fmt(totalSecs)} · Español`}
+          </p>
+        </div>
+
+        {/* Waveform */}
+        <div
+          className="flex items-end justify-center gap-[3px]"
+          aria-hidden="true"
+          style={{ height: 28, opacity: playing ? 1 : 0.18, transition: 'opacity 0.4s ease' }}
+        >
+          {WAVEFORM_HEIGHTS.map((h, i) => (
+            <span
+              key={i}
+              style={{
+                display: 'block',
+                width: 3,
+                borderRadius: 2,
+                background: 'var(--color-crimson)',
+                height: `${h * 100}%`,
+                transformOrigin: 'bottom',
+                animation: playing ? `audiobar 0.9s ease-in-out ${i * 0.07}s infinite alternate` : 'none',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex flex-col gap-1">
+          <div
+            ref={barRef}
+            role="slider"
+            aria-label="Posición de reproducción"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+            className="relative h-8 flex items-center cursor-pointer group"
+            onClick={handleSeek}
+          >
+            <div
+              className="w-full h-1.5 rounded-full"
+              style={{ background: 'var(--color-border)' }}
+            >
+              <div
+                className="h-full rounded-full relative"
+                style={{
+                  width: `${progress * 100}%`,
+                  background: 'var(--color-crimson)',
+                  transition: playing ? 'none' : 'width 0.15s ease',
+                }}
+              >
+                {/* Thumb */}
+                <div
+                  className="absolute right-0 top-1/2 w-3.5 h-3.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  style={{
+                    transform: 'translate(50%, -50%)',
+                    background: 'var(--color-crimson)',
+                    border: '2px solid white',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Time labels */}
+          <div
+            className="flex justify-between text-[11px]"
+            style={{ color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}
+          >
+            <span>{fmt(currentSecs)}</span>
+            <span>{fmt(totalSecs)}</span>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-8">
+          {/* Restart */}
+          <button
+            onClick={handleRestart}
+            aria-label="Reiniciar desde el principio"
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-90"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            <ArrowCounterClockwise size={24} weight="bold" aria-hidden="true" />
+          </button>
+
+          {/* Play / Pause */}
+          <button
+            onClick={handlePlayPause}
+            aria-label={playing ? 'Pausar' : 'Reproducir'}
+            className="w-16 h-16 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: 'var(--color-crimson)',
+              color: 'white',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--color-crimson) 35%, transparent)',
+            }}
+          >
+            {playing
+              ? <Pause size={26} weight="fill" aria-hidden="true" />
+              : <Play size={26} weight="fill" aria-hidden="true" style={{ marginLeft: 3 }} />
+            }
+          </button>
+
+          {/* Placeholder — simetría visual */}
+          <div className="w-10 h-10" aria-hidden="true" />
+        </div>
+      </div>
+
+      {/* Transcript */}
+      <div
+        className="rounded-xl p-5"
+        style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border)' }}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Headphones size={13} weight="fill" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            Texto de la audioguía
+          </span>
+        </div>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+          {description}
+        </p>
+      </div>
     </div>
   )
 }

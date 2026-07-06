@@ -13,7 +13,8 @@ import { notFound } from 'next/navigation'
 import {
   ArrowLeft, ArrowRight, MapPin, Clock, Phone, Globe, Tag, CheckCircle, Check, Path,
   BookmarkSimple, Heart, InstagramLogo, FacebookLogo, TiktokLogo,
-  WhatsappLogo, EnvelopeSimple, FilePdf, DownloadSimple,
+  WhatsappLogo, EnvelopeSimple, FilePdf, DownloadSimple, NavigationArrow,
+  ShareFat, Star, ArrowSquareOut, Lightbulb,
 } from '@phosphor-icons/react'
 import { findComercio, findRuta } from '@/lib/data'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -38,6 +39,7 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
   const { id } = use(params)
   const [claimed, setClaimed] = useState(false)
   const [liked, setLiked] = useState(false)
+  const [downloaded, setDownloaded] = useState(false)
   const [activeTab, setActiveTab] = useState('info')
   const { favorites, toggleFavorite } = useFavorites()
   const { showLogin, loginMessage, requireAuth, closeLogin } = useRequireAuth()
@@ -53,13 +55,25 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
     return imgs
   }, [comercio.image, comercio.images])
 
+  const directionsUrl = comercio.lat && comercio.lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${comercio.lat},${comercio.lng}`
+    : null
+
   const hasSocial = comercio.instagram || comercio.facebook || comercio.tiktok
   const hasContact = comercio.whatsapp || comercio.email
   const hasHostStory = !!comercio.hostStory
+  const hasVideo = !!comercio.youtubeUrl
+  const hasPdfs = !!(comercio.pdfs && comercio.pdfs.length > 0)
+  const hasTips = !!(comercio.tips && comercio.tips.length > 0)
 
-  const TABS = hasHostStory
-    ? [{ id: 'info', label: 'Información' }, { id: 'historia', label: 'Sobre el anfitrión' }]
-    : []
+  const TABS = [
+    { id: 'info', label: 'Información' },
+    ...(hasHostStory ? [{ id: 'historia', label: 'Sobre el anfitrión' }] : []),
+    ...(hasTips ? [{ id: 'consejos', label: 'Consejos' }] : []),
+    ...(hasVideo ? [{ id: 'videos', label: 'Videos' }] : []),
+    ...(hasPdfs ? [{ id: 'documentos', label: 'Documentos' }] : []),
+  ]
+  const showTabs = TABS.length > 1
 
   return (
     <article className="min-h-screen pb-20" style={{ background: 'var(--color-surface)' }}>
@@ -71,16 +85,27 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
         height="clamp(280px, 40vh, 420px)"
         style={{ viewTransitionName: `card-${comercio.id}` } as React.CSSProperties}
       >
-        {/* Back button */}
-        <TransitionLink
-          href="/red-travel"
-          aria-label="Volver a Red Travel"
-          className="absolute top-6 left-8 flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
-          style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', zIndex: 3 }}
-        >
-          <ArrowLeft size={15} aria-hidden="true" />
-          Red Travel
-        </TransitionLink>
+        {/* Back button + Share */}
+        <div className="absolute top-6 left-8 flex items-center gap-2" style={{ zIndex: 3 }}>
+          <TransitionLink
+            href="/red-travel"
+            aria-label="Volver a Red Travel"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)' }}
+          >
+            <ArrowLeft size={15} aria-hidden="true" />
+            Red Travel
+          </TransitionLink>
+          <button
+            onClick={() => navigator.share?.({ title: comercio.title, url: window.location.href })}
+            aria-label="Compartir"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)' }}
+          >
+            <ShareFat size={15} aria-hidden="true" />
+            Compartir
+          </button>
+        </div>
 
         {/* Badge */}
         {comercio.badge && (
@@ -116,6 +141,13 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
           >
             {comercio.title}
           </h1>
+          <div className="flex items-center gap-1.5 mt-2">
+            <Star size={13} weight="fill" color="#FBBF24" aria-hidden="true" />
+            <span className="text-white font-semibold text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              {comercio.rating.toFixed(1)}
+            </span>
+            <span className="text-white/60 text-xs">{comercio.location}</span>
+          </div>
         </div>
 
         {/* Logo — right side, fully over the carousel */}
@@ -152,12 +184,12 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
           {/* Left — info */}
           <div className="lg:col-span-2 flex flex-col gap-8">
 
-            {/* Tabs (only if host story exists) */}
-            {hasHostStory && (
+            {/* Tabs */}
+            {showTabs && (
               <Tabs tabs={TABS} activeId={activeTab} onChange={setActiveTab} />
             )}
 
-            {activeTab === 'info' ? (
+            {activeTab === 'info' && (
               <>
                 {/* Description */}
                 <p
@@ -255,67 +287,11 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                     </div>
                   )}
                 </div>
-
-                {/* Video de YouTube */}
-                {comercio.youtubeUrl && (
-                  <div
-                    className="rounded-2xl overflow-hidden"
-                    style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
-                  >
-                    <div style={{ aspectRatio: '16/9', position: 'relative' }}>
-                      <iframe
-                        src={`https://www.youtube-nocookie.com/embed/${youtubeId(comercio.youtubeUrl)}`}
-                        title={`Video de ${comercio.title}`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        loading="lazy"
-                        className="absolute inset-0 w-full h-full"
-                        style={{ border: 'none' }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Documentos PDF */}
-                {comercio.pdfs && comercio.pdfs.length > 0 && (
-                  <div
-                    className="rounded-2xl p-7 flex flex-col gap-4"
-                    style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
-                  >
-                    <h2
-                      className="text-sm font-bold uppercase tracking-widest"
-                      style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
-                    >
-                      Documentos
-                    </h2>
-                    <div className="flex flex-col gap-2.5">
-                      {comercio.pdfs.map(pdf => (
-                        <a
-                          key={pdf.url}
-                          href={pdf.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3.5 rounded-xl transition-colors hover:opacity-80"
-                          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-                        >
-                          <div
-                            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ background: 'var(--color-crimson-light)' }}
-                          >
-                            <FilePdf size={17} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
-                          </div>
-                          <span className="flex-1 text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                            {pdf.title}
-                          </span>
-                          <DownloadSimple size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </>
-            ) : (
-              /* Host story tab */
+            )}
+
+            {/* Host story tab */}
+            {activeTab === 'historia' && (
               <div
                 className="rounded-2xl p-7"
                 style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
@@ -339,6 +315,78 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                 </p>
               </div>
             )}
+
+            {/* Consejos tab */}
+            {activeTab === 'consejos' && (
+              <div
+                className="rounded-2xl p-7 flex flex-col gap-4"
+                style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+              >
+                <ul className="flex flex-col gap-3">
+                  {comercio.tips!.map((tip, i) => (
+                    <li key={i} className="flex gap-3 items-start text-sm" style={{ color: 'var(--color-text-muted)', lineHeight: '1.65' }}>
+                      <Lightbulb size={15} weight="fill" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Videos tab */}
+            {activeTab === 'videos' && (
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+              >
+                <div style={{ aspectRatio: '16/9', position: 'relative' }}>
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId(comercio.youtubeUrl!)}`}
+                    title={`Video de ${comercio.title}`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full"
+                    style={{ border: 'none' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Documentos tab */}
+            {activeTab === 'documentos' && (
+              <div
+                className="rounded-2xl p-7 flex flex-col gap-4"
+                style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+              >
+                <div className="flex flex-col gap-2.5">
+                  {comercio.pdfs!.map(pdf => (
+                    <a
+                      key={pdf.url}
+                      href={pdf.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3.5 rounded-xl transition-colors hover:opacity-80"
+                      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--color-crimson-light)' }}
+                      >
+                        <FilePdf size={17} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                      </div>
+                      <span className="flex-1 text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                        {pdf.title}
+                      </span>
+                      <DownloadSimple size={16} aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reseñas */}
+            <ComercioReviewSection requireAuth={requireAuth} />
           </div>
 
           {/* Right — benefit card + action box + contact */}
@@ -401,6 +449,48 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                 </div>
               )}
 
+              {/* Contact card */}
+              {hasContact && (
+                <div
+                  className="rounded-2xl p-5 flex flex-col gap-3"
+                  style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                >
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-widest"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                  >
+                    Contacto
+                  </p>
+                  {comercio.whatsapp && (
+                    <a
+                      href={`https://wa.me/${comercio.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm text-white transition-all active:scale-95"
+                      style={{ background: '#25D366', fontFamily: 'var(--font-family-heading)' }}
+                    >
+                      <WhatsappLogo size={18} weight="fill" />
+                      WhatsApp
+                    </a>
+                  )}
+                  {comercio.email && (
+                    <a
+                      href={`mailto:${comercio.email}`}
+                      className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-95"
+                      style={{
+                        background: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-family-heading)',
+                      }}
+                    >
+                      <EnvelopeSimple size={18} />
+                      Email
+                    </a>
+                  )}
+                </div>
+              )}
+
               {/* Action box */}
                 <div
                   className="rounded-2xl p-5 flex flex-col gap-4"
@@ -442,75 +532,53 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
                       {liked ? 'Te gusta' : 'Me gusta'}
                     </button>
                   </div>
-                </div>
-
-                {/* Contact card */}
-                {hasContact && (
-                  <div
-                    className="rounded-2xl p-5 flex flex-col gap-3"
-                    style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+                  <button
+                    onClick={() => setDownloaded(v => !v)}
+                    aria-pressed={downloaded}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 cursor-pointer"
+                    style={{
+                      background: downloaded ? 'var(--color-crimson-light)' : 'var(--color-surface)',
+                      color: downloaded ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                      border: `1px solid ${downloaded ? 'transparent' : 'var(--color-border)'}`,
+                      fontFamily: 'var(--font-family-heading)',
+                    }}
                   >
-                    <p
-                      className="text-[10px] font-semibold uppercase tracking-widest"
-                      style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
+                    <DownloadSimple size={15} weight="regular" aria-hidden="true" />
+                    {downloaded ? 'Descargado' : 'Descargar offline'}
+                  </button>
+                  {directionsUrl && (
+                    <a
+                      href={directionsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 text-white"
+                      style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
                     >
-                      Contacto
-                    </p>
-                    {comercio.whatsapp && (
-                      <a
-                        href={`https://wa.me/${comercio.whatsapp}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm text-white transition-all active:scale-95"
-                        style={{ background: '#25D366', fontFamily: 'var(--font-family-heading)' }}
+                      <NavigationArrow size={15} weight="fill" aria-hidden="true" />
+                      ¿Cómo llego?
+                    </a>
+                  )}
+                  {/* Mapa cuadrado */}
+                  {comercio.lat && comercio.lng && (
+                    <div className="rounded-xl overflow-hidden" style={{ aspectRatio: '1/1', position: 'relative' }}>
+                      <PinMapView lat={comercio.lat} lng={comercio.lng} title={comercio.title} />
+                      <Link
+                        href="/mapa"
+                        className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
+                        style={{ background: 'var(--color-card)', color: 'var(--color-text-primary)', boxShadow: 'var(--shadow-card)' }}
                       >
-                        <WhatsappLogo size={18} weight="fill" />
-                        WhatsApp
-                      </a>
-                    )}
-                    {comercio.email && (
-                      <a
-                        href={`mailto:${comercio.email}`}
-                        className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-95"
-                        style={{
-                          background: 'var(--color-surface)',
-                          border: '1px solid var(--color-border)',
-                          color: 'var(--color-text-primary)',
-                          fontFamily: 'var(--font-family-heading)',
-                        }}
-                      >
-                        <EnvelopeSimple size={18} />
-                        Email
-                      </a>
-                    )}
-                  </div>
-                )}
+                        <ArrowSquareOut size={12} aria-hidden="true" />
+                        Abrir mapa
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mapa de ubicación */}
-      {comercio.lat && comercio.lng && (
-        <div className="px-5 sm:px-8 lg:px-12 pb-12">
-          <h2
-            className="text-sm font-bold uppercase tracking-widest mb-5"
-            style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}
-          >
-            Ubicación
-          </h2>
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ height: 'clamp(220px, 35vw, 360px)', boxShadow: 'var(--shadow-card)' }}
-          >
-            <PinMapView lat={comercio.lat} lng={comercio.lng} title={comercio.title} />
-          </div>
-          <p className="mt-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            {comercio.address}
-          </p>
-        </div>
-      )}
 
       {/* Rutas vinculadas */}
       {comercio.rutaIds && comercio.rutaIds.length > 0 && (
@@ -570,5 +638,67 @@ export default function ComercioPage({ params }: { params: Promise<{ id: string 
 
       <LoginPrompt open={showLogin} onClose={closeLogin} message={loginMessage} />
     </article>
+  )
+}
+
+function ComercioReviewSection({ requireAuth }: { requireAuth: (msg: string) => boolean }) {
+  const [rating, setRating] = useState(0)
+  const [hover, setHover] = useState(0)
+  const [text, setText] = useState('')
+  const { showLogin, loginMessage, requireAuth: localRequireAuth, closeLogin } = useRequireAuth()
+
+  return (
+    <div
+      className="rounded-2xl p-7"
+      style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+    >
+      <h3 className="font-bold text-base mb-4" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+        Dejá tu reseña
+      </h3>
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-1.5" role="group" aria-label="Calificación con estrellas">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              aria-label={`${star} estrella${star > 1 ? 's' : ''}`}
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+              className="transition-transform hover:scale-110 active:scale-95"
+            >
+              <Star
+                size={26}
+                weight={star <= (hover || rating) ? 'fill' : 'regular'}
+                style={{ color: star <= (hover || rating) ? '#FBBF24' : 'var(--color-border)' }}
+              />
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="Compartí tu experiencia con otros viajeros..."
+          aria-label="Escribí tu reseña"
+          rows={3}
+          className="w-full rounded-xl p-3 text-sm outline-none resize-none transition-all"
+          style={{
+            background: 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+            border: '1.5px solid var(--color-border)',
+          }}
+          onFocus={e => (e.currentTarget.style.borderColor = 'var(--color-crimson)')}
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--color-border)')}
+        />
+        <button
+          disabled={rating === 0 || text.trim().length === 0}
+          onClick={() => localRequireAuth('Iniciá sesión para publicar tu reseña')}
+          className="self-start px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}
+        >
+          Publicar reseña
+        </button>
+      </div>
+      <LoginPrompt open={showLogin} onClose={closeLogin} message={loginMessage} />
+    </div>
   )
 }

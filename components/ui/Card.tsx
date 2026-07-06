@@ -177,14 +177,19 @@ export function Card({
 
 function RosetteBadge({ label }: { label: string }) {
   return (
-    <div className="relative w-11 h-11 flex items-center justify-center">
-      <svg viewBox="0 0 44 44" className="absolute inset-0 w-full h-full" aria-hidden="true">
-        <path
-          d="M22 2 l2.6 5.5 5.8-2.8-1.4 6.2 6.2 0.8-3.8 4.9 4.7 3.8-5.4 2.2 1.4 6.2-5.8-2.8-2.6 5.5-2.6-5.5-5.8 2.8 1.4-6.2-5.4-2.2 4.7-3.8-3.8-4.9 6.2-0.8-1.4-6.2 5.8 2.8Z"
-          fill="var(--color-crimson)"
-        />
-      </svg>
-      <span className="relative z-10 text-white text-[9px] font-black leading-none text-center px-0.5" style={{ fontFamily: 'var(--font-family-body)' }}>
+    <div
+      className="flex items-center justify-center px-2.5 py-1 rounded-full"
+      style={{
+        background: 'var(--color-crimson)',
+        backdropFilter: 'blur(4px)',
+        boxShadow: '0 1px 6px rgba(0,0,0,0.25)',
+        maxWidth: '120px',
+      }}
+    >
+      <span
+        className="text-white text-[10px] font-bold leading-none truncate"
+        style={{ fontFamily: 'var(--font-family-body)', letterSpacing: '0.01em' }}
+      >
         {label}
       </span>
     </div>

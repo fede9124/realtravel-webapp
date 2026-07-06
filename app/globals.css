@@ -123,6 +123,11 @@
   to { background-position: -200% 0; }
 }
 
+@keyframes audiobar {
+  from { transform: scaleY(0.3); }
+  to   { transform: scaleY(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
