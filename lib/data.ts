@@ -3956,7 +3956,7 @@ export const EVENTOS: Evento[] = [
   },
   {
     id: 'concierto-atardecer-pv',
-    image: 'https://images.unsplash.com/photo-1501386761578-0a55f5e29237?w=600',
+    image: 'https://images.unsplash.com/photo-1579457870378-16e766c0c266?w=600',
     title: 'Concierto de Verano al Atardecer',
     description: 'Música en vivo frente al lago con el volcán Osorno de fondo. La Orquesta de Cámara de Puerto Varas interpreta un programa de música clásica y folclore chileno mientras el sol se pone detrás del volcán. Llevá tu manta y algo para picotear.',
     category: 'Música',
