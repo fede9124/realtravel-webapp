@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { List, AirplaneTilt } from '@phosphor-icons/react'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { SideNav } from './SideNav'
@@ -9,12 +10,17 @@ import { AuthContext, useAuthProvider } from '@/hooks/useAuth'
 export const SIDEBAR_EXPANDED = 240
 export const SIDEBAR_COLLAPSED = 64
 const MOBILE_HEADER_H = 56
+const HOVER_LEAVE_DELAY = 220
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const auth = useAuthProvider()
-  const [collapsed, setCollapsed] = useState(false)
+  const pathname = usePathname()
+  const isDemo = pathname.startsWith('/demo')
+  const [pinned, setPinned] = useState(false)
+  const [hovering, setHovering] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -27,7 +33,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  const sidebarW = isMobile ? 0 : (collapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED)
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-pinned')
+    if (saved === 'true') setPinned(true)
+  }, [])
+
+  function handleHoverEnter() {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current)
+    setHovering(true)
+  }
+
+  function handleHoverLeave() {
+    leaveTimer.current = setTimeout(() => setHovering(false), HOVER_LEAVE_DELAY)
+  }
+
+  function handlePinToggle() {
+    setPinned(prev => {
+      const next = !prev
+      localStorage.setItem('sidebar-pinned', String(next))
+      if (!next) setHovering(false)
+      return next
+    })
+  }
+
+  // Main margin: 64px always unless pinned (sidebar overlays when only hovering)
+  const sidebarW = isMobile ? 0 : (pinned ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED)
 
   return (
     <AuthContext.Provider value={auth}>
@@ -45,8 +75,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <SideNav
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(v => !v)}
+        hovering={hovering}
+        pinned={pinned}
+        onHoverEnter={handleHoverEnter}
+        onHoverLeave={handleHoverLeave}
+        onPinToggle={handlePinToggle}
         mobileOpen={mobileOpen}
         isMobile={isMobile}
         onMobileClose={() => setMobileOpen(false)}
@@ -75,30 +108,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <List size={20} weight="regular" aria-hidden="true" />
           </button>
 
-          <TransitionLink
-            href="/explorar"
-            className="flex items-center gap-2"
-            aria-label="Real Travel — inicio"
-          >
-            <div
-              className="flex items-center justify-center rounded-lg"
-              style={{ width: '28px', height: '28px', background: 'var(--color-crimson)' }}
-            >
-              <AirplaneTilt size={14} color="white" weight="fill" aria-hidden="true" />
-            </div>
-            <span
-              className="font-bold text-sm"
-              style={{
-                fontFamily: 'var(--font-family-display)',
-                color: 'var(--color-text-primary)',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              Real Travel
-            </span>
-          </TransitionLink>
+          {isDemo ? (
+            <TransitionLink href="/demo" className="flex items-center gap-2" aria-label="Puerto Varas — inicio">
+              <span className="font-bold text-sm" style={{ fontFamily: 'var(--font-family-display)', color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
+                Puerto Varas
+              </span>
+            </TransitionLink>
+          ) : (
+            <TransitionLink href="/explorar" className="flex items-center gap-2" aria-label="Real Travel — inicio">
+              <div className="flex items-center justify-center rounded-lg" style={{ width: '28px', height: '28px', background: 'var(--color-crimson)' }}>
+                <AirplaneTilt size={14} color="white" weight="fill" aria-hidden="true" />
+              </div>
+              <span className="font-bold text-sm" style={{ fontFamily: 'var(--font-family-display)', color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
+                Real Travel
+              </span>
+            </TransitionLink>
+          )}
 
-          {/* Mirror of the hamburger for optical balance */}
           <div className="w-11" aria-hidden="true" />
         </header>
       )}
@@ -118,5 +144,4 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
     </AuthContext.Provider>
   )
-
 }

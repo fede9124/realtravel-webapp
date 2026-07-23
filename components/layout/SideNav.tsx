@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import {
   Compass, MapTrifold, Globe, Heart,
-  CaretLeft, CaretRight, X,
-  MapPin, Buildings, Path, User,
+  X, MapPin, Buildings, Path, User, PushPin,
+  House, Binoculars, Phone, CalendarBlank,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { useAuth } from '@/hooks/useAuth'
@@ -27,9 +27,22 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/favoritos',  label: 'Favoritos',  Icon: Heart      },
 ]
 
+const DEMO_NAV_ITEMS: NavItem[] = [
+  { href: '/demo',           label: 'Inicio',     Icon: House      },
+  { href: '/demo/atractivos', label: 'Atractivos', Icon: Binoculars },
+  { href: '/demo/rutas',     label: 'Rutas',      Icon: Path       },
+  { href: '/demo/mapa',      label: 'Mapa',       Icon: MapTrifold },
+  { href: '/demo/servicios', label: 'Servicios',  Icon: Globe      },
+  { href: '/demo/eventos',   label: 'Eventos',    Icon: CalendarBlank },
+  { href: '/demo/contacto',  label: 'Contacto',   Icon: Phone      },
+]
+
 interface SideNavProps {
-  collapsed: boolean
-  onToggle: () => void
+  hovering: boolean
+  pinned: boolean
+  onHoverEnter: () => void
+  onHoverLeave: () => void
+  onPinToggle: () => void
   mobileOpen: boolean
   isMobile: boolean
   onMobileClose: () => void
@@ -65,15 +78,30 @@ function CollapsibleLabel({
   )
 }
 
-export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClose }: SideNavProps) {
+export function SideNav({
+  hovering,
+  pinned,
+  onHoverEnter,
+  onHoverLeave,
+  onPinToggle,
+  mobileOpen,
+  isMobile,
+  onMobileClose,
+}: SideNavProps) {
   const pathname = usePathname()
   const { isLoggedIn } = useAuth()
 
-  const isCollapsed = isMobile ? false : collapsed
-  const sidebarWidth = isMobile ? 240 : (collapsed ? 64 : 240)
+  const isDemo = pathname.startsWith('/demo')
+  const navItems = isDemo ? DEMO_NAV_ITEMS : NAV_ITEMS
 
-  // An item is "active" if the current path starts with its href
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+  const expanded = isMobile ? true : (hovering || pinned)
+  const isCollapsed = !expanded
+  const sidebarWidth = expanded ? 240 : 64
+
+  const isActive = (href: string) =>
+    isDemo
+      ? (href === '/demo' ? pathname === '/demo' : pathname.startsWith(href + '/') || pathname === href)
+      : pathname === href || pathname.startsWith(href + '/')
 
   const navItemStyle = (active: boolean): React.CSSProperties => ({
     display: 'flex',
@@ -110,13 +138,19 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
           width: `${sidebarWidth}px`,
           background: 'var(--color-card)',
           borderColor: 'var(--color-border)',
-          boxShadow: isMobile ? '4px 0 24px rgba(45,20,8,0.12)' : 'var(--shadow-panel)',
+          boxShadow: isMobile
+            ? '4px 0 24px rgba(45,20,8,0.12)'
+            : expanded && !pinned
+              ? '4px 0 20px rgba(45,20,8,0.10)'
+              : 'var(--shadow-panel)',
           zIndex: 50,
           transform: mobileTransform,
           transition: isMobile
             ? `transform 0.3s ${EASE}`
-            : `width 0.3s ${EASE}`,
+            : `width 0.3s ${EASE}, box-shadow 0.3s ease`,
         }}
+        onMouseEnter={!isMobile ? onHoverEnter : undefined}
+        onMouseLeave={!isMobile ? onHoverLeave : undefined}
         aria-label="Navegación principal"
       >
         {/* Logo row */}
@@ -125,41 +159,66 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
           style={{
             borderColor: 'var(--color-border)',
             height: '72px',
-            padding: isCollapsed ? '0 14px' : '0 20px',
+            padding: isCollapsed ? '0 14px' : '0 16px 0 20px',
             justifyContent: isCollapsed ? 'center' : 'flex-start',
-            gap: isCollapsed ? 0 : '12px',
+            gap: isCollapsed ? 0 : '10px',
             transition: `padding 0.3s ${EASE}, gap 0.3s ${EASE}`,
           }}
         >
           <TransitionLink
-            href="/explorar"
+            href={isDemo ? '/demo' : '/explorar'}
             onClick={isMobile ? onMobileClose : undefined}
-            aria-label="Real Travel — inicio"
-            style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none' }}
+            aria-label={isDemo ? 'Puerto Varas — inicio' : 'Real Travel — inicio'}
+            style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none', flex: 1, minWidth: 0 }}
           >
             <Image
-              src="/logo/RT_roj.png"
-              alt="Real Travel"
+              src={isDemo ? '/logo/pv_logo.png' : '/logo/RT_roj.png'}
+              alt={isDemo ? 'Puerto Varas' : 'Real Travel'}
               width={36}
               height={36}
               className="flex-shrink-0"
               style={{ objectFit: 'contain' }}
             />
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{ overflow: 'hidden', flex: 1, minWidth: 0 }}>
               <CollapsibleLabel collapsed={isCollapsed}>
                 <span
                   className="font-bold text-base block"
                   style={{ fontFamily: 'var(--font-family-display)', color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}
                 >
-                  Real Travel
+                  {isDemo ? 'Puerto Varas' : 'Real Travel'}
                 </span>
                 <span className="text-[11px] block" style={{ color: 'var(--color-text-muted)', marginTop: '-1px' }}>
-                  Guía inteligente
+                  {isDemo ? 'powered by Real Travel' : 'Guía inteligente'}
                 </span>
               </CollapsibleLabel>
             </div>
           </TransitionLink>
 
+          {/* Pin button — visible when expanded on desktop */}
+          {!isMobile && expanded && (
+            <button
+              onClick={onPinToggle}
+              aria-label={pinned ? 'Desfijar barra lateral' : 'Fijar barra lateral'}
+              title={pinned ? 'Desfijar' : 'Fijar'}
+              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 hover:scale-110 active:scale-90"
+              style={{
+                color: pinned ? 'var(--color-crimson)' : 'var(--color-text-muted)',
+                background: pinned ? 'var(--color-crimson-light)' : 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => { if (!pinned) e.currentTarget.style.background = 'var(--color-surface)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = pinned ? 'var(--color-crimson-light)' : 'transparent' }}
+            >
+              <PushPin
+                size={16}
+                weight={pinned ? 'fill' : 'regular'}
+                aria-hidden="true"
+              />
+            </button>
+          )}
+
+          {/* Mobile close button */}
           {isMobile && (
             <button
               onClick={onMobileClose}
@@ -182,7 +241,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
             transition: `padding 0.3s ${EASE}`,
           }}
         >
-          {NAV_ITEMS.map(({ href, label, Icon }) => {
+          {navItems.map(({ href, label, Icon }) => {
             const active = isActive(href)
 
             return (
@@ -220,8 +279,8 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
           })}
         </nav>
 
-        {/* Bottom: profile + toggle */}
-        <div
+        {/* Bottom: profile (hidden in demo) */}
+        {!isDemo && <div
           className="border-t flex-shrink-0 flex flex-col"
           style={{
             borderColor: 'var(--color-border)',
@@ -266,41 +325,7 @@ export function SideNav({ collapsed, onToggle, mobileOpen, isMobile, onMobileClo
               </span>
             </CollapsibleLabel>
           </TransitionLink>
-
-          {!isMobile && (
-            <button
-              onClick={onToggle}
-              aria-label={collapsed ? 'Expandir menú lateral' : 'Contraer menú lateral'}
-              title={collapsed ? 'Expandir' : 'Contraer'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: isCollapsed ? 0 : '10px',
-                padding: isCollapsed ? '10px' : '10px 14px',
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                transition: `background 150ms ease, gap 0.3s ${EASE}`,
-                background: 'transparent',
-                color: 'var(--color-text-muted)',
-                border: 'none',
-                width: '100%',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              {collapsed
-                ? <CaretRight size={15} weight="regular" aria-hidden="true" />
-                : <CaretLeft  size={15} weight="regular" style={{ flexShrink: 0 }} aria-hidden="true" />
-              }
-              <CollapsibleLabel collapsed={isCollapsed}>
-                <span className="text-xs font-medium" style={{ fontFamily: 'var(--font-family-body)' }}>
-                  Contraer
-                </span>
-              </CollapsibleLabel>
-            </button>
-          )}
-        </div>
+        </div>}
       </aside>
     </>
   )
