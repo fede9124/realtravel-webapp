@@ -14,6 +14,7 @@ const DIFFICULTY_COLOR: Record<Ruta['difficulty'], string> = {
 }
 
 interface RouteCardProps extends Ruta {
+  href?: string
   destinoTitle?: string
   createdBy?: string
   createdByHref?: string
@@ -33,6 +34,7 @@ export function RouteCard({
   destinoTitle,
   createdBy,
   createdByHref,
+  href: hrefOverride,
   difficulty,
   duration,
   distance,
@@ -44,7 +46,7 @@ export function RouteCard({
   revealDelay = 0,
   priority = false,
 }: RouteCardProps) {
-  const href = `/rutas/${id}`
+  const href = hrefOverride ?? `/rutas/${id}`
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
 
