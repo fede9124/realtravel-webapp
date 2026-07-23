@@ -1821,7 +1821,7 @@ export const LUGARES: Lugar[] = [
   // ── Puerto Varas (Chile) ──
   {
     kind: 'lugar', id: 'lago-llanquihue',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
+    image: 'https://images.unsplash.com/photo-1583343863760-be6b06032bd8?w=600',
     images: ['https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600'],
     category: 'Lago', title: 'Lago Llanquihue',
     location: 'Puerto Varas, Chile',
@@ -1832,7 +1832,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'volcan-osorno',
-    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600',
+    image: 'https://images.unsplash.com/photo-1578704399126-38975ba256d7?w=600',
     images: ['https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600'],
     category: 'Volcán', title: 'Volcán Osorno',
     location: 'Puerto Varas, Chile',
@@ -1843,7 +1843,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'saltos-petrohue',
-    image: 'https://images.unsplash.com/photo-1548783781-0e8fb38c9df0?w=600',
+    image: 'https://images.unsplash.com/photo-1712921674876-83cda22594ec?w=600',
     images: ['https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?w=600'],
     category: 'Cascadas', title: 'Saltos del Petrohué',
     location: 'Puerto Varas, Chile',
@@ -1854,7 +1854,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'parque-np-vpr',
-    image: 'https://images.unsplash.com/photo-1575783970733-1aaedde1db74?w=600',
+    image: 'https://images.unsplash.com/photo-1578704410892-86dbdab9b4e8?w=600',
     images: ['https://images.unsplash.com/photo-1504198458-11f43b66fea5?w=600'],
     category: 'Parque nacional', title: 'Parque Nacional Vicente Pérez Rosales',
     location: 'Puerto Varas, Chile',
@@ -1865,8 +1865,8 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'lago-todos-los-santos',
-    image: 'https://images.unsplash.com/photo-1535530992830-e25d07cfa780?w=600',
-    images: ['https://images.unsplash.com/photo-1562016600-ece13e8ba570?w=600'],
+    image: 'https://images.unsplash.com/photo-1708364220315-74c780083452?w=600',
+    images: ['https://images.unsplash.com/photo-1581265945180-4bf2d92d459d?w=600'],
     category: 'Lago', title: 'Lago Todos los Santos',
     location: 'Puerto Varas, Chile',
     rating: 4.9, moods: ['naturaleza', 'relajo', 'fotografía'],
@@ -1886,7 +1886,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'casa-juptner',
-    image: 'https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=600',
+    image: 'https://images.unsplash.com/photo-1583343866810-52b1dd135495?w=600',
     category: 'Edificio histórico', title: 'Casa Juptner',
     location: 'Puerto Varas, Chile',
     rating: 4.5, moods: ['historia', 'cultura'],
@@ -1896,7 +1896,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'monte-calvario-pv',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
+    image: 'https://images.unsplash.com/photo-1654562870473-4db211e0e927?w=600',
     category: 'Mirador', title: 'Monte Calvario',
     location: 'Puerto Varas, Chile',
     rating: 4.6, moods: ['naturaleza', 'relajo', 'fotografía'],
@@ -1936,7 +1936,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'ensenada-pv',
-    image: 'https://images.unsplash.com/photo-1475073791696-00e3aeb64f4e?w=600',
+    image: 'https://images.unsplash.com/photo-1548877696-abefdc512c1e?w=600',
     category: 'Paisaje', title: 'Ensenada',
     location: 'Puerto Varas, Chile',
     rating: 4.7, moods: ['naturaleza', 'relajo', 'aventura'],
@@ -1946,7 +1946,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'peulla-pv',
-    image: 'https://images.unsplash.com/photo-1504198458-11f43b66fea5?w=600',
+    image: 'https://images.unsplash.com/photo-1708364218782-5e630b44f517?w=600',
     category: 'Paisaje', title: 'Peulla',
     location: 'Puerto Varas, Chile',
     rating: 4.6, moods: ['naturaleza', 'aventura', 'relajo'],
@@ -1966,7 +1966,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'kayak-llanquihue',
-    image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=600',
+    image: 'https://images.unsplash.com/photo-1616345043636-74a2088af548?w=600',
     category: 'Kayak', title: 'Kayak en Lago Llanquihue',
     location: 'Puerto Varas, Chile',
     rating: 4.7, moods: ['aventura', 'naturaleza', 'relajo'],
@@ -2006,7 +2006,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'laguna-verde-pv',
-    image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600',
+    image: 'https://images.unsplash.com/photo-1709267735280-a59c3c2c41bd?w=600',
     category: 'Laguna', title: 'Laguna Verde',
     location: 'Puerto Varas, Chile',
     rating: 4.7, moods: ['naturaleza', 'fotografía', 'aventura'],
@@ -2016,7 +2016,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'circuito-patrimonial-pv',
-    image: 'https://images.unsplash.com/photo-1565008458859-3b5e7af74dc0?w=600',
+    image: 'https://images.unsplash.com/photo-1583343867559-a8a31301b9a2?w=600',
     category: 'Patrimonio', title: 'Circuito Patrimonial de Puerto Varas',
     location: 'Puerto Varas, Chile',
     rating: 4.6, moods: ['historia', 'cultura', 'fotografía'],
@@ -2695,7 +2695,7 @@ export const DESTINOS: Destino[] = [
   {
     kind: 'destino',
     id: 'puerto-varas',
-    image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=1400',
+    image: 'https://images.unsplash.com/photo-1708737339521-f3c750942ffb?w=1400',
     category: 'Ciudad',
     title: 'Puerto Varas',
     location: 'Los Lagos, Chile',
@@ -3833,7 +3833,7 @@ export const RUTAS: Ruta[] = [
   // ── Puerto Varas ──
   {
     kind: 'ruta', id: 'pv-naturaleza-volcan', title: 'Naturaleza y volcán',
-    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600',
+    image: 'https://images.unsplash.com/photo-1578704399126-38975ba256d7?w=600',
     description: 'El circuito natural más completo de Puerto Varas: desde la ribera del lago hasta las nieves del volcán, pasando por cascadas turquesa y bosque valdiviano milenario.',
     difficulty: 'Moderada',
     destinoId: 'puerto-varas',
@@ -3842,7 +3842,7 @@ export const RUTAS: Ruta[] = [
   },
   {
     kind: 'ruta', id: 'pv-patrimonio-urbano', title: 'Patrimonio urbano de Puerto Varas',
-    image: 'https://images.unsplash.com/photo-1481833761820-0509d3217039?w=600',
+    image: 'https://images.unsplash.com/photo-1583343733868-718f5d4a9531?w=600',
     description: 'Recorrido a pie por el casco histórico: las casas de colonos alemanes, la iglesia neogótica más fotogénica del sur, miradores y la feria artesanal junto al lago.',
     difficulty: 'Fácil',
     destinoId: 'puerto-varas',
@@ -3851,7 +3851,7 @@ export const RUTAS: Ruta[] = [
   },
   {
     kind: 'ruta', id: 'pv-aventura-lago', title: 'Aventura en el lago',
-    image: 'https://images.unsplash.com/photo-1530870110042-98b2cb110834?w=600',
+    image: 'https://images.unsplash.com/photo-1616345043636-74a2088af548?w=600',
     description: 'Rafting, kayak y trekking en un solo día: las mejores experiencias de aventura que ofrece Puerto Varas, desde los rápidos del Petrohué hasta la travesía en kayak frente al volcán.',
     difficulty: 'Desafiante',
     destinoId: 'puerto-varas',
