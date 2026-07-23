@@ -1906,7 +1906,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'molino-machmar',
-    image: 'https://images.unsplash.com/photo-1561839560-0615a69a9bcb?w=600',
+    image: 'https://images.unsplash.com/photo-1761563071832-e548e022a706?w=600',
     category: 'Museos', title: 'Centro Arte Molino Machmar',
     location: 'Puerto Varas, Chile',
     rating: 4.4, moods: ['cultura', 'arte'],
@@ -1926,7 +1926,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'gruta-lourdes-pv',
-    image: 'https://images.unsplash.com/photo-1533134105-05e0c5f3b282?w=600',
+    image: 'https://images.unsplash.com/photo-1720146608190-9089a481d047?w=600',
     category: 'Ermita', title: 'Gruta Nuestra Señora de Lourdes',
     location: 'Puerto Varas, Chile',
     rating: 4.4, moods: ['historia', 'cultura', 'relajo'],
@@ -1956,7 +1956,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'rafting-petrohue',
-    image: 'https://images.unsplash.com/photo-1531147646552-5f09e5ceecd0?w=600',
+    image: 'https://images.unsplash.com/photo-1661341336999-38ec1090d799?w=600',
     category: 'Rafting', title: 'Rafting Río Petrohué',
     location: 'Puerto Varas, Chile',
     rating: 4.8, moods: ['aventura', 'naturaleza'],
@@ -1976,7 +1976,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'ascension-osorno',
-    image: 'https://images.unsplash.com/photo-1544636331-9f1a3f6edc53?w=600',
+    image: 'https://images.unsplash.com/photo-1528913010160-240d3500c209?w=600',
     category: 'Montaña', title: 'Ascensión al Volcán Osorno',
     location: 'Puerto Varas, Chile',
     rating: 4.9, moods: ['aventura', 'naturaleza', 'fotografía'],
@@ -1986,7 +1986,7 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'observacion-aves-pv',
-    image: 'https://images.unsplash.com/photo-1440437269585-6e3d58a7df21?w=600',
+    image: 'https://images.unsplash.com/photo-1506124212790-39006fe75b46?w=600',
     category: 'Biodiversidad', title: 'Observación de Aves',
     location: 'Puerto Varas, Chile',
     rating: 4.5, moods: ['naturaleza', 'fotografía', 'relajo'],
@@ -3569,8 +3569,8 @@ export const COMERCIOS: Comercio[] = [
   },
   {
     kind: 'comercio', id: 'alsur-expediciones',
-    image: 'https://images.unsplash.com/photo-1531147646552-5f09e5ceecd0?w=600',
-    images: ['https://images.unsplash.com/photo-1544636331-9f1a3f6edc53?w=600'],
+    image: 'https://images.unsplash.com/photo-1661341336999-38ec1090d799?w=600',
+    images: ['https://images.unsplash.com/photo-1528913010160-240d3500c209?w=600'],
     category: 'Tour operador', title: 'Alsur Expediciones',
     location: 'Puerto Varas, Chile',
     rating: 4.9, badge: 'Servicio destacado',
