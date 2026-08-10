@@ -1,15 +1,32 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { MapPin, ArrowLeft } from '@phosphor-icons/react'
+import { MapPin, ArrowLeft, TreeEvergreen, Buildings, MaskHappy, Ticket, Sparkle } from '@phosphor-icons/react'
 import { SearchBar } from '@/components/ui/SearchBar'
+import { ChipFilter } from '@/components/ui/ChipFilter'
 import { Card } from '@/components/ui/Card'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
-import { LUGARES } from '@/lib/data'
+import { LUGARES, CATEGORIAS } from '@/lib/data'
 
 const PV_LUGARES = LUGARES.filter(l => l.destinoId === 'puerto-varas')
-const CATEGORIES = ['Todos', ...new Set(PV_LUGARES.map(l => l.category))]
+
+const CATEGORIA_ICONS: Record<string, typeof TreeEvergreen> = {
+  'Naturaleza y Paisaje': TreeEvergreen,
+  'Cultura y Patrimonio': Buildings,
+  'Tradiciones y Vida Local': MaskHappy,
+  'Experiencias y Ocio': Ticket,
+  'Inmaterial': Sparkle,
+}
+
+const FILTERS = [
+  { id: 'Todos', label: 'Todos' },
+  ...CATEGORIAS.map(cat => ({
+    id: cat,
+    label: cat,
+    Icon: CATEGORIA_ICONS[cat],
+  })),
+]
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
@@ -21,7 +38,7 @@ export default function DemoAtractivosPage() {
   const filtered = useMemo(() => {
     let list = activeCategory === 'Todos'
       ? PV_LUGARES
-      : PV_LUGARES.filter(l => l.category === activeCategory)
+      : PV_LUGARES.filter(l => l.categoria === activeCategory)
     if (query.trim()) {
       const q = norm(query.trim())
       list = list.filter(l => norm(`${l.title} ${l.location} ${l.category}`).includes(q))
@@ -75,28 +92,11 @@ export default function DemoAtractivosPage() {
       </div>
 
       {/* Filters */}
-      <div className="reveal px-5 sm:px-8 lg:px-12 pb-8" data-delay="50">
-        <div className="mb-4">
+      <div className="reveal flex flex-col gap-4 px-5 sm:px-8 lg:px-12 pb-8" data-delay="50">
+        <div className="max-w-xl">
           <SearchBar value={query} onChange={setQuery} placeholder="Buscar atractivos..." />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-150"
-              style={{
-                fontFamily: 'var(--font-family-body)',
-                background: activeCategory === cat ? 'var(--color-crimson)' : 'var(--color-card)',
-                color: activeCategory === cat ? 'white' : 'var(--color-text-muted)',
-                border: `1px solid ${activeCategory === cat ? 'var(--color-crimson)' : 'var(--color-border)'}`,
-                cursor: 'pointer',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <ChipFilter chips={FILTERS} activeId={activeCategory} onChange={setActiveCategory} />
       </div>
 
       {/* Grid */}

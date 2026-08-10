@@ -146,8 +146,11 @@ export default function DemoRutaPage({ params }: { params: Promise<{ id: string 
                             </span>
                           ))}
                         </div>
-                        <Link href={`/demo/atractivos/${lugar.id}`} className="inline-flex items-center gap-1 text-xs font-semibold" style={{ color: 'var(--color-crimson)' }}>
-                          Ver detalle →
+                        <Link href={`/demo/atractivos/${lugar.id}`}
+                          onClick={e => e.stopPropagation()}
+                          className="block text-center text-xs font-semibold py-2 rounded-lg text-white transition-opacity hover:opacity-90"
+                          style={{ background: 'var(--color-crimson)' }}>
+                          Ver lugar completo
                         </Link>
                       </div>
                     )}

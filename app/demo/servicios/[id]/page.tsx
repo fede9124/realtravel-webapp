@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { ImageCarousel } from '@/components/ui/ImageCarousel'
@@ -8,11 +9,11 @@ import { Tabs } from '@/components/ui/Tabs'
 import { useState, useMemo, use } from 'react'
 import { notFound } from 'next/navigation'
 import {
-  ArrowLeft, MapPin, Clock, Phone, Globe, Tag, Path, NavigationArrow,
-  ShareFat, Star, InstagramLogo, FacebookLogo, TiktokLogo,
-  WhatsappLogo, EnvelopeSimple,
+  ArrowLeft, ArrowRight, MapPin, Clock, Phone, Globe, Tag, CheckCircle, Check, Path,
+  NavigationArrow, ShareFat, Star, ArrowSquareOut, Lightbulb,
+  InstagramLogo, FacebookLogo, TiktokLogo, WhatsappLogo, EnvelopeSimple,
 } from '@phosphor-icons/react'
-import { findComercio, findRuta, RUTAS } from '@/lib/data'
+import { findComercio, findRuta } from '@/lib/data'
 
 const PinMapView = dynamic(() => import('@/components/map/PinMapView'), { ssr: false })
 
@@ -45,200 +46,306 @@ export default function DemoServicioPage({ params }: { params: Promise<{ id: str
   const hasSocial = comercio.instagram || comercio.facebook || comercio.tiktok
   const hasContact = comercio.whatsapp || comercio.email
   const hasHostStory = !!comercio.hostStory
+  const hasTips = !!(comercio.tips && comercio.tips.length > 0)
 
-  const linkedRoutes = RUTAS.filter(r => r.destinoId === 'puerto-varas' && comercio.rutaIds?.includes(r.id))
+  const linkedRoutes = comercio.rutaIds
+    ? comercio.rutaIds.map(rid => findRuta(rid)).filter(Boolean) as NonNullable<ReturnType<typeof findRuta>>[]
+    : []
 
   const TABS = [
     { id: 'info', label: 'Información' },
     ...(hasHostStory ? [{ id: 'historia', label: 'Sobre el anfitrión' }] : []),
+    ...(hasTips ? [{ id: 'consejos', label: 'Consejos' }] : []),
   ]
   const showTabs = TABS.length > 1
 
   return (
     <article className="min-h-screen pb-20" style={{ background: 'var(--color-surface)' }}>
+
+      {/* Hero carousel with title overlay + logo */}
       <ImageCarousel images={allImages} alt={comercio.title} height="clamp(280px, 40vh, 420px)"
         style={{ viewTransitionName: `card-${comercio.id}` } as React.CSSProperties}>
+        {/* Back + Share */}
         <div className="absolute top-6 left-8 flex items-center gap-2" style={{ zIndex: 3 }}>
           <TransitionLink href="/demo/servicios" aria-label="Volver"
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
             style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)' }}>
-            <ArrowLeft size={15} /> Servicios
+            <ArrowLeft size={15} aria-hidden="true" /> Servicios
           </TransitionLink>
           <button onClick={() => navigator.share?.({ title: comercio.title, url: window.location.href })} aria-label="Compartir"
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-80"
             style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)' }}>
-            <ShareFat size={15} /> Compartir
+            <ShareFat size={15} aria-hidden="true" /> Compartir
           </button>
         </div>
+
+        {/* Badge */}
         {comercio.badge && (
           <div className="absolute top-6 right-8" style={{ zIndex: 3 }}>
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-white text-sm"
               style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}>
-              <Tag size={13} /> {comercio.badge}
+              <Tag size={13} aria-hidden="true" /> {comercio.badge}
             </div>
           </div>
         )}
+
+        {/* Name overlay */}
+        <div className="absolute bottom-0 left-0 right-0 px-5 sm:px-8 pb-7" style={{ zIndex: 3, paddingRight: comercio.logo ? '160px' : undefined }}>
+          <p className="text-white/75 text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ fontFamily: 'var(--font-family-heading)', letterSpacing: '0.12em' }}>
+            {comercio.category}
+          </p>
+          <h1 className="text-white font-bold leading-tight"
+            style={{ fontFamily: 'var(--font-family-display)', fontSize: 'clamp(1.75rem, 3vw + 0.5rem, 3.25rem)', letterSpacing: '-0.01em' }}>
+            {comercio.title}
+          </h1>
+          <div className="flex items-center gap-1.5 mt-2">
+            <Star size={13} weight="fill" color="#FBBF24" aria-hidden="true" />
+            <span className="text-white font-semibold text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>{comercio.rating.toFixed(1)}</span>
+            <span className="text-white/60 text-xs">{comercio.location}</span>
+          </div>
+        </div>
+
+        {/* Logo — circular overlay */}
         {comercio.logo && (
-          <div className="absolute bottom-6 right-6" style={{ zIndex: 3 }}>
-            <div className="rounded-2xl overflow-hidden shadow-lg" style={{ width: '72px', height: '72px', border: '3px solid white' }}>
-              <img src={comercio.logo} alt="" className="w-full h-full object-cover" />
-            </div>
+          <div className="absolute overflow-hidden"
+            style={{
+              width: 'clamp(56px, 9vw, 160px)', height: 'clamp(56px, 9vw, 160px)',
+              borderRadius: '50%', border: '4px solid white', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              bottom: 'clamp(14px, 2.5vw, 32px)', right: 'clamp(20px, 10vw, 160px)',
+              zIndex: 10, background: 'white',
+            }}>
+            <Image src={comercio.logo} alt={`Logo de ${comercio.title}`} fill className="object-cover" sizes="(min-width: 1024px) 128px, 72px" />
           </div>
         )}
       </ImageCarousel>
 
-      <div className="px-5 sm:px-8 lg:px-12 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Main */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-3" style={{ fontFamily: 'var(--font-family-heading)', color: 'var(--color-text-primary)', letterSpacing: '-0.01em' }}>
-                {comercio.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full"
-                  style={{ color: 'var(--color-crimson)', background: 'var(--color-crimson-light)' }}>{comercio.category}</span>
-                <div className="flex items-center gap-1">
-                  <MapPin size={13} style={{ color: 'var(--color-text-muted)' }} />
-                  <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{comercio.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star size={13} weight="fill" color="#dca102" />
-                  <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{comercio.rating.toFixed(1)}</span>
-                </div>
-              </div>
-            </div>
+      {/* Content */}
+      <div className="px-5 sm:px-8 lg:px-12 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 py-10">
+
+          {/* Left — info */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
 
             {showTabs && <Tabs tabs={TABS} activeId={activeTab} onChange={setActiveTab} />}
 
             {activeTab === 'info' && (
-              <div className="flex flex-col gap-6">
-                <p className="text-base leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>{comercio.description}</p>
+              <>
+                <p className="text-base leading-relaxed"
+                  style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-body)', lineHeight: '1.8', maxWidth: '65ch' }}>
+                  {comercio.description}
+                </p>
 
-                <div className="flex flex-col gap-2.5">
-                  {[
-                    { icon: MapPin, label: 'Dirección', value: comercio.address },
-                    { icon: Clock, label: 'Horarios', value: comercio.hours },
-                    ...(comercio.phone ? [{ icon: Phone, label: 'Teléfono', value: comercio.phone }] : []),
-                    ...(comercio.website ? [{ icon: Globe, label: 'Web', value: comercio.website }] : []),
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
-                      <Icon size={15} className="mt-0.5 flex-shrink-0" style={{ color: 'var(--color-crimson)' }} />
-                      <div>
-                        <span className="text-[10px] font-bold uppercase block" style={{ color: 'var(--color-text-muted)', letterSpacing: '0.06em' }}>{label}</span>
-                        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>{value}</span>
+                {/* Practical info card */}
+                <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
+                  <h2 className="text-sm font-bold uppercase tracking-widest"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+                    Información práctica
+                  </h2>
+                  <dl className="flex flex-col gap-3.5">
+                    {[
+                      { Icon: MapPin, label: 'Dirección', value: comercio.address, href: undefined as string | undefined },
+                      { Icon: Clock, label: 'Horario', value: comercio.hours, href: undefined as string | undefined },
+                      { Icon: Phone, label: 'Teléfono', value: comercio.phone, href: undefined as string | undefined },
+                      { Icon: Globe, label: 'Web', value: comercio.website, href: comercio.website ? `https://${comercio.website.replace(/^https?:\/\//, '')}` : undefined },
+                    ].filter(row => !!row.value).map(({ Icon, label, value, href }) => (
+                      <div key={label} className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'var(--color-crimson-light)' }}>
+                          <Icon size={15} weight="regular" aria-hidden="true" style={{ color: 'var(--color-crimson)' }} />
+                        </div>
+                        <div>
+                          <dt className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)' }}>{label}</dt>
+                          <dd className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                            {href ? (
+                              <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-crimson)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>{value}</a>
+                            ) : value}
+                          </dd>
+                        </div>
                       </div>
+                    ))}
+                  </dl>
+
+                  {hasSocial && (
+                    <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                      {comercio.instagram && (
+                        <a href={socialUrl('instagram', comercio.instagram)} target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+                          className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{ background: 'var(--color-crimson-light)', color: 'var(--color-crimson)' }}>
+                          <InstagramLogo size={18} weight="regular" />
+                        </a>
+                      )}
+                      {comercio.facebook && (
+                        <a href={socialUrl('facebook', comercio.facebook)} target="_blank" rel="noopener noreferrer" aria-label="Facebook"
+                          className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{ background: 'var(--color-crimson-light)', color: 'var(--color-crimson)' }}>
+                          <FacebookLogo size={18} weight="regular" />
+                        </a>
+                      )}
+                      {comercio.tiktok && (
+                        <a href={socialUrl('tiktok', comercio.tiktok)} target="_blank" rel="noopener noreferrer" aria-label="TikTok"
+                          className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{ background: 'var(--color-crimson-light)', color: 'var(--color-crimson)' }}>
+                          <TiktokLogo size={18} weight="regular" />
+                        </a>
+                      )}
                     </div>
-                  ))}
+                  )}
                 </div>
-
-                {hasSocial && (
-                  <div className="flex items-center gap-2">
-                    {comercio.instagram && (
-                      <a href={socialUrl('instagram', comercio.instagram)} target="_blank" rel="noopener noreferrer"
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-colors"
-                        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                        <InstagramLogo size={18} />
-                      </a>
-                    )}
-                    {comercio.facebook && (
-                      <a href={socialUrl('facebook', comercio.facebook)} target="_blank" rel="noopener noreferrer"
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-colors"
-                        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                        <FacebookLogo size={18} />
-                      </a>
-                    )}
-                    {comercio.tiktok && (
-                      <a href={socialUrl('tiktok', comercio.tiktok)} target="_blank" rel="noopener noreferrer"
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-colors"
-                        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-                        <TiktokLogo size={18} />
-                      </a>
-                    )}
-                  </div>
-                )}
-
-                {linkedRoutes.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-bold mb-3" style={{ fontFamily: 'var(--font-family-heading)', color: 'var(--color-text-primary)' }}>Rutas vinculadas</h3>
-                    <div className="flex flex-col gap-2">
-                      {linkedRoutes.map(r => (
-                        <Link key={r.id} href={`/demo/rutas/${r.id}`}
-                          className="flex items-center gap-2 p-3 rounded-xl transition-colors hover:bg-[var(--color-surface)]"
-                          style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', textDecoration: 'none' }}>
-                          <Path size={14} style={{ color: 'var(--color-crimson)' }} />
-                          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>{r.title}</span>
-                          <span className="text-xs ml-auto" style={{ color: 'var(--color-text-muted)' }}>{r.difficulty}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              </>
             )}
 
             {activeTab === 'historia' && comercio.hostStory && (
-              <div className="p-6 rounded-2xl" style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
-                <p className="text-base leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>{comercio.hostStory}</p>
+              <div className="rounded-2xl p-7" style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
+                <h2 className="text-sm font-bold uppercase tracking-widest mb-4"
+                  style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+                  Sobre el anfitrión
+                </h2>
+                <p className="text-base leading-relaxed"
+                  style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-body)', lineHeight: '1.8', maxWidth: '65ch' }}>
+                  {comercio.hostStory}
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'consejos' && comercio.tips && (
+              <div className="rounded-2xl p-7 flex flex-col gap-4" style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
+                <ul className="flex flex-col gap-3">
+                  {comercio.tips.map((tip, i) => (
+                    <li key={i} className="flex gap-3 items-start text-sm" style={{ color: 'var(--color-text-muted)', lineHeight: '1.65' }}>
+                      <Lightbulb size={15} weight="fill" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
 
-          {/* Sidebar */}
-          <aside className="flex flex-col gap-4 lg:sticky lg:top-[88px] lg:self-start">
-            {comercio.lat && comercio.lng && (
-              <div className="rounded-2xl overflow-hidden" style={{ height: '200px', border: '1px solid var(--color-border)' }}>
-                <PinMapView lat={comercio.lat} lng={comercio.lng} title={comercio.title} />
-              </div>
-            )}
+          {/* Right — benefit + contact + actions */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 flex flex-col gap-5">
 
-            {directionsUrl && (
-              <a href={directionsUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-150 hover:scale-[1.02] active:scale-95"
-                style={{ background: 'var(--color-crimson)', color: 'white', textDecoration: 'none', boxShadow: 'var(--shadow-fab)' }}>
-                <NavigationArrow size={15} weight="fill" /> Cómo llegar
-              </a>
-            )}
+              {/* Benefit card — elaborate */}
+              {comercio.benefit && (
+                <div className="rounded-2xl overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
+                  <div className="px-7 py-6" style={{ background: 'var(--color-crimson)' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag size={14} color="white" aria-hidden="true" />
+                      <span className="text-white/80 text-[10px] font-semibold uppercase tracking-widest"
+                        style={{ fontFamily: 'var(--font-family-heading)', letterSpacing: '0.12em' }}>
+                        Beneficio Real Travel
+                      </span>
+                    </div>
+                    <p className="text-white font-bold text-3xl leading-none"
+                      style={{ fontFamily: 'var(--font-family-heading)', letterSpacing: '-0.03em' }}>
+                      {comercio.badge}
+                    </p>
+                  </div>
+                  <div className="px-7 py-6 flex flex-col gap-5" style={{ background: 'var(--color-card)' }}>
+                    <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-primary)', lineHeight: '1.7' }}>{comercio.benefit}</p>
+                    <ul className="flex flex-col gap-2" aria-label="Condiciones del beneficio">
+                      {(comercio.conditions ?? []).map(c => (
+                        <li key={c} className="flex items-start gap-2">
+                          <CheckCircle size={14} weight="regular" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
+                          <span className="text-xs leading-snug" style={{ color: 'var(--color-text-muted)' }}>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-95"
+                      style={{ background: 'var(--color-crimson)', color: 'white', fontFamily: 'var(--font-family-heading)' }}>
+                      Canjear beneficio
+                    </button>
+                  </div>
+                </div>
+              )}
 
-            {hasContact && (
-              <div className="p-4 rounded-2xl flex flex-col gap-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)' }}>
-                <h3 className="text-sm font-bold" style={{ fontFamily: 'var(--font-family-heading)', color: 'var(--color-text-primary)' }}>Contacto</h3>
-                <div className="flex flex-col gap-2">
+              {/* Contact card */}
+              {hasContact && (
+                <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest"
+                    style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+                    Contacto
+                  </p>
                   {comercio.whatsapp && (
                     <a href={`https://wa.me/${comercio.whatsapp}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02]"
-                      style={{ background: '#25D366', textDecoration: 'none' }}>
-                      <WhatsappLogo size={16} weight="fill" /> WhatsApp
+                      className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm text-white transition-all active:scale-95"
+                      style={{ background: '#25D366', fontFamily: 'var(--font-family-heading)' }}>
+                      <WhatsappLogo size={18} weight="fill" /> WhatsApp
                     </a>
                   )}
                   {comercio.email && (
                     <a href={`mailto:${comercio.email}`}
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
-                      style={{ background: 'var(--color-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)', textDecoration: 'none' }}>
-                      <EnvelopeSimple size={16} /> Email
+                      className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all active:scale-95"
+                      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+                      <EnvelopeSimple size={18} /> Email
                     </a>
                   )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {comercio.benefit && (
-              <div className="p-4 rounded-2xl" style={{ background: 'var(--color-crimson-light)', border: '1px solid rgba(196,18,48,0.15)' }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Tag size={14} style={{ color: 'var(--color-crimson)' }} />
-                  <span className="text-sm font-bold" style={{ color: 'var(--color-crimson)' }}>Beneficio</span>
-                </div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{comercio.benefit}</p>
-                {comercio.conditions && (
-                  <ul className="mt-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    {comercio.conditions.map(c => <li key={c}>· {c}</li>)}
-                  </ul>
+              {/* Action box */}
+              <div className="rounded-2xl p-5 flex flex-col gap-4" style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+                  Acciones
+                </p>
+                {directionsUrl && (
+                  <a href={directionsUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 text-white"
+                    style={{ background: 'var(--color-crimson)', fontFamily: 'var(--font-family-heading)' }}>
+                    <NavigationArrow size={15} weight="fill" aria-hidden="true" />
+                    ¿Cómo llego?
+                  </a>
+                )}
+                {comercio.lat && comercio.lng && (
+                  <div className="rounded-xl overflow-hidden" style={{ aspectRatio: '1/1', position: 'relative' }}>
+                    <PinMapView lat={comercio.lat} lng={comercio.lng} title={comercio.title} />
+                    <Link href="/demo/mapa"
+                      className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
+                      style={{ background: 'var(--color-card)', color: 'var(--color-text-primary)', boxShadow: 'var(--shadow-card)' }}>
+                      <ArrowSquareOut size={12} aria-hidden="true" />
+                      Abrir mapa
+                    </Link>
+                  </div>
                 )}
               </div>
-            )}
-          </aside>
+
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Rutas vinculadas — full-width below grid */}
+      {linkedRoutes.length > 0 && (
+        <div className="px-5 sm:px-8 lg:px-12 pb-16">
+          <h2 className="text-sm font-bold uppercase tracking-widest mb-6"
+            style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+            Rutas propias
+          </h2>
+          <div className="flex flex-wrap gap-4">
+            {linkedRoutes.map(ruta => (
+              <Link key={ruta.id} href={`/demo/rutas/${ruta.id}`}
+                className="flex items-center gap-4 p-5 rounded-2xl transition-all hover:shadow-md"
+                style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)', textDecoration: 'none', flex: '1 0 280px', maxWidth: '400px' }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--color-crimson-light)' }}>
+                  <Path size={20} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm leading-snug truncate mb-1"
+                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-display)' }}>
+                    {ruta.title}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                    {ruta.duration} · {ruta.stops.length} paradas · {ruta.distance}
+                  </p>
+                </div>
+                <ArrowRight size={15} weight="bold" style={{ color: 'var(--color-crimson)', flexShrink: 0 }} aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </article>
   )
 }
