@@ -137,7 +137,7 @@ export default function RouteMapView({ stops, selectedIdx, onMarkerClick }: Prop
 
     if (selectedIdx !== null && stopsWithCoords[selectedIdx]) {
       const stop = stopsWithCoords[selectedIdx]
-      map.flyTo({ center: [stop.lng!, stop.lat!], zoom: 15, duration: 700 })
+      map.flyTo({ center: [stop.lng!, stop.lat!], duration: 700 })
     }
   }, [selectedIdx, stopsWithCoords])
 
