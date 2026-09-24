@@ -305,33 +305,8 @@ export default function MapaPage() {
   function handleSelect(id: string) {
     const newId = selectedId === id ? null : id
     setSelectedId(newId)
-    if (isMobile && newId !== null && sheetSnap !== 'full') setSheetSnap('full')
+    if (isMobile && newId !== null && sheetSnap === 'collapsed') setSheetSnap('half')
   }
-
-  useEffect(() => {
-    if (!isMobile || !selectedId) return
-    if (sheetSnap === 'collapsed') return
-
-    let attempts = 0
-    const maxAttempts = 5
-
-    function tryScroll() {
-      const container = sheetScrollRef.current
-      const el = container?.querySelector(`[data-item-id="${selectedId}"]`) as HTMLElement | null
-      if (!container || !el) return
-      const containerRect = container.getBoundingClientRect()
-      const elRect = el.getBoundingClientRect()
-      if (elRect.top >= containerRect.top && elRect.bottom <= window.innerHeight) return
-      const elTopInContent = elRect.top - containerRect.top + container.scrollTop
-      const targetScroll = elTopInContent - container.clientHeight / 2 + elRect.height / 2
-      container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' })
-    }
-
-    const timers = Array.from({ length: maxAttempts }, (_, i) =>
-      setTimeout(tryScroll, 200 + i * 300)
-    )
-    return () => timers.forEach(clearTimeout)
-  }, [selectedId, sheetSnap, isMobile])
 
   function handleResetView() {
     setFlyToTarget({ lat: 20, lng: 0, zoom: 1.5 })
@@ -821,10 +796,10 @@ export default function MapaPage() {
         {/* Mobile: floating action buttons */}
         {isMobile && (
           <div
-            className="absolute right-4 bottom-24 flex flex-col gap-2.5"
+            className="fixed right-4 flex flex-col gap-2.5"
             role="group"
             aria-label="Controles del mapa"
-            style={{ zIndex: 10 }}
+            style={{ bottom: '92px', zIndex: 20 }}
           >
             <button
               onClick={handleResetView}
@@ -892,7 +867,8 @@ export default function MapaPage() {
             onTouchEnd={handleSheetTouchEnd}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-3" style={{ background: 'var(--color-border)' }} aria-hidden="true" />
-            <div className="flex items-center justify-between">
+
+            <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
                 {filtered.length} resultado{filtered.length !== 1 ? 's' : ''} en vista
               </p>
@@ -907,12 +883,89 @@ export default function MapaPage() {
                 </button>
               )}
             </div>
+
+            {/* Selected item preview card */}
+            {selectedId && (() => {
+              let sel = filtered.find(i => i.id === selectedId)
+              if (!sel) {
+                const place = ALL_PLACES.find(p => p.id === selectedId)
+                if (place) {
+                  sel = { ...place, kind: 'lugar' as const }
+                } else {
+                  const com = ALL_MAP_COMERCIOS.find(c => c.id === selectedId)
+                  if (com) sel = { ...com, kind: 'comercio' as const, location: '', rating: 0 }
+                }
+              }
+              if (!sel) return null
+              const href = sel.kind === 'comercio' ? `/red-travel/${sel.id}` : `/explorar/${sel.id}`
+              return (
+                <div
+                  className="rounded-xl overflow-hidden mb-3"
+                  style={{ background: 'var(--color-crimson-light)', border: '1px solid rgba(196,18,48,0.15)' }}
+                >
+                  <div className="flex items-start gap-3 p-3">
+                    <div
+                      className="relative flex-shrink-0 rounded-lg overflow-hidden"
+                      style={{ width: '64px', height: '64px', background: 'var(--color-border)' }}
+                    >
+                      {sel.image && (
+                        <Image src={sel.image} alt={sel.title} fill className="object-cover" sizes="64px" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p
+                          className="font-semibold text-sm leading-tight"
+                          style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
+                        >
+                          {sel.title}
+                        </p>
+                        <button
+                          onClick={() => setSelectedId(null)}
+                          className="w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0"
+                          style={{ background: 'rgba(196,18,48,0.1)' }}
+                          aria-label="Cerrar selección"
+                        >
+                          <X size={10} weight="bold" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+                        </button>
+                      </div>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                        {sel.kind === 'comercio' ? `Red Travel · ${sel.category}` : `${sel.category} · ${sel.location}`}
+                      </p>
+                      {sel.rating > 0 && (
+                        <span className="flex items-center gap-0.5 mt-1">
+                          <Star size={10} weight="fill" color="#FBBF24" aria-hidden="true" />
+                          <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                            {sel.rating.toFixed(1)}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {sel.description && (
+                    <p className="text-xs line-clamp-2 px-3 mb-2.5" style={{ color: 'var(--color-text-muted)', lineHeight: '1.5' }}>
+                      {sel.description}
+                    </p>
+                  )}
+                  <div className="px-3 pb-3">
+                    <Link
+                      href={href}
+                      className="block text-center text-xs font-semibold py-2 rounded-lg text-white transition-opacity hover:opacity-90"
+                      style={{ background: sel.kind === 'comercio' ? '#EA580C' : 'var(--color-crimson)' }}
+                    >
+                      Ver detalle
+                    </Link>
+                  </div>
+                </div>
+              )
+            })()}
+
           </div>
 
           {/* Results list */}
           <div ref={sheetScrollRef} className="flex-1 overflow-y-auto border-t" style={{ borderColor: 'var(--color-border)' }}>
             {filtered.map(item => {
-              const isSelected = selectedId === item.id
+              if (selectedId === item.id) return null
               const detailHref = item.kind === 'comercio' ? `/red-travel/${item.id}` : `/explorar/${item.id}`
               return (
                 <button
@@ -920,12 +973,9 @@ export default function MapaPage() {
                   data-item-id={item.id}
                   onClick={() => handleSelect(item.id)}
                   className="w-full text-left px-5 py-3.5 border-b cursor-pointer transition-colors"
-                  style={{
-                    borderColor: 'var(--color-border)',
-                    background: isSelected ? 'var(--color-crimson-light)' : 'transparent',
-                  }}
-                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--color-surface)' }}
-                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? 'var(--color-crimson-light)' : 'transparent' }}
+                  style={{ borderColor: 'var(--color-border)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <div className="flex items-start gap-3">
                     <div
@@ -967,23 +1017,6 @@ export default function MapaPage() {
                       </p>
                     </div>
                   </div>
-                  {isSelected && (
-                    <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'rgba(196,18,48,0.15)' }}>
-                      {item.description && (
-                        <p className="text-xs line-clamp-2 mb-2.5" style={{ color: 'var(--color-text-muted)', lineHeight: '1.5' }}>
-                          {item.description}
-                        </p>
-                      )}
-                      <Link
-                        href={detailHref}
-                        className="block text-center text-xs font-semibold py-2 rounded-lg text-white cursor-pointer transition-opacity hover:opacity-90"
-                        style={{ background: item.kind === 'comercio' ? '#EA580C' : 'var(--color-crimson)' }}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        Ver detalle
-                      </Link>
-                    </div>
-                  )}
                 </button>
               )
             })}
