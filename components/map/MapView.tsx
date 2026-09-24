@@ -242,7 +242,7 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
   const [mapLoaded, setMapLoaded] = useState(false)
   const placeMarkersRef = useRef<{ marker: mapboxgl.Marker; id: string }[]>([])
   const destinoMarkersRef = useRef<mapboxgl.Marker[]>([])
-  const comercioMarkersRef = useRef<mapboxgl.Marker[]>([])
+  const comercioMarkersRef = useRef<{ marker: mapboxgl.Marker; id: string }[]>([])
 
   // Keep callbacks current so event listeners don't go stale
   const onSelectRef = useRef(onSelect)
@@ -343,7 +343,7 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
 
       placeMarkersRef.current.forEach(({ marker }) => setVisible(marker.getElement(), showPlaces))
       destinoMarkersRef.current.forEach(m => setVisible(m.getElement(), showDestinos))
-      comercioMarkersRef.current.forEach(m => setVisible(m.getElement(), showComercios))
+      comercioMarkersRef.current.forEach(({ marker }) => setVisible(marker.getElement(), showComercios))
     }
 
     map.on('zoom', updateVisibility)
@@ -388,7 +388,7 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     const map = mapRef.current
     if (!map || !mapLoaded || !comercios?.length) return
 
-    comercioMarkersRef.current.forEach(m => m.remove())
+    comercioMarkersRef.current.forEach(({ marker }) => marker.remove())
     comercioMarkersRef.current = []
 
     const zoom = map.getZoom()
@@ -403,11 +403,15 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
         .setLngLat([comercio.lng, comercio.lat])
         .addTo(map)
 
-      comercioMarkersRef.current.push(marker)
+      comercioMarkersRef.current.push({ marker, id: comercio.id })
+    })
+
+    comercioMarkersRef.current.forEach(({ marker, id }) => {
+      applySelectionStyle(marker.getElement(), id === selectedId)
     })
 
     return () => {
-      comercioMarkersRef.current.forEach(m => m.remove())
+      comercioMarkersRef.current.forEach(({ marker }) => marker.remove())
       comercioMarkersRef.current = []
     }
   }, [comercios, mapLoaded])
@@ -420,19 +424,23 @@ export default function MapView({ places, destinos, comercios, selectedId, flyTo
     placeMarkersRef.current.forEach(({ marker, id }) => {
       applySelectionStyle(marker.getElement(), id === selectedId)
     })
+    comercioMarkersRef.current.forEach(({ marker, id }) => {
+      applySelectionStyle(marker.getElement(), id === selectedId)
+    })
 
     if (selectedId) {
       const place = places.find(p => p.id === selectedId)
-      if (place) {
-        // easeTo (not flyTo) — short same-city moves shouldn't arc the camera out and back in
+      const comercio = comercios?.find(c => c.id === selectedId)
+      const target = place ?? comercio
+      if (target) {
         map.easeTo({
-          center: [place.lng, place.lat],
+          center: [target.lng, target.lat],
           zoom: Math.max(map.getZoom(), 12),
           duration: 800,
         })
       }
     }
-  }, [selectedId, places, mapLoaded])
+  }, [selectedId, places, comercios, mapLoaded])
 
   // ── Destino pin markers ────────────────────────────────────────────────────
   useEffect(() => {

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   Crosshair, Star, MapPin, MagnifyingGlass,
-  List, X, FunnelSimple,
+  List, X, FunnelSimple, GlobeHemisphereWest,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { LUGARES, DESTINOS, COMERCIOS, CATEGORIAS } from '@/lib/data'
@@ -179,6 +179,10 @@ export default function MapaPage() {
   const [geoQuery, setGeoQuery] = useState('')
   const [geoResults, setGeoResults] = useState<{ place_name: string; center: [number, number] }[]>([])
   const geoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [sheetSnap, setSheetSnap] = useState<'collapsed' | 'half' | 'full'>('collapsed')
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const sheetTouchRef = useRef({ startY: 0, startTranslateY: 0 })
+  const sheetScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -282,12 +286,103 @@ export default function MapaPage() {
           haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng)
       )
     }
+
+    if (selectedId && !list.some(i => i.id === selectedId)) {
+      const selPlace = ALL_PLACES.find(p => p.id === selectedId)
+      if (selPlace) {
+        list.unshift({ ...selPlace, kind: 'lugar' as const })
+      } else {
+        const selComercio = ALL_MAP_COMERCIOS.find(c => c.id === selectedId)
+        if (selComercio) {
+          list.unshift({ ...selComercio, kind: 'comercio' as const, location: '', rating: 0 })
+        }
+      }
+    }
+
     return list
-  }, [mapPlaces, mapBounds, nearbyMode, userCoords])
+  }, [mapPlaces, mapBounds, nearbyMode, userCoords, selectedId])
 
   function handleSelect(id: string) {
-    setSelectedId(prev => (prev === id ? null : id))
-    if (isMobile) setPanelOpen(false)
+    const newId = selectedId === id ? null : id
+    setSelectedId(newId)
+    if (isMobile && newId !== null && sheetSnap !== 'full') setSheetSnap('full')
+  }
+
+  useEffect(() => {
+    if (!isMobile || !selectedId) return
+    if (sheetSnap === 'collapsed') return
+
+    let attempts = 0
+    const maxAttempts = 5
+
+    function tryScroll() {
+      const container = sheetScrollRef.current
+      const el = container?.querySelector(`[data-item-id="${selectedId}"]`) as HTMLElement | null
+      if (!container || !el) return
+      const containerRect = container.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      if (elRect.top >= containerRect.top && elRect.bottom <= window.innerHeight) return
+      const elTopInContent = elRect.top - containerRect.top + container.scrollTop
+      const targetScroll = elTopInContent - container.clientHeight / 2 + elRect.height / 2
+      container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' })
+    }
+
+    const timers = Array.from({ length: maxAttempts }, (_, i) =>
+      setTimeout(tryScroll, 200 + i * 300)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [selectedId, sheetSnap, isMobile])
+
+  function handleResetView() {
+    setFlyToTarget({ lat: 20, lng: 0, zoom: 1.5 })
+  }
+
+  function getSheetTranslateY(snap: 'collapsed' | 'half' | 'full'): number {
+    const sheetH = window.innerHeight * 0.85
+    switch (snap) {
+      case 'full': return 0
+      case 'half': return sheetH * 0.5
+      case 'collapsed': return sheetH - 80
+    }
+  }
+
+  function handleSheetTouchStart(e: React.TouchEvent) {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    sheetTouchRef.current = {
+      startY: e.touches[0].clientY,
+      startTranslateY: getSheetTranslateY(sheetSnap),
+    }
+    sheet.style.transition = 'none'
+  }
+
+  function handleSheetTouchMove(e: React.TouchEvent) {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    const delta = e.touches[0].clientY - sheetTouchRef.current.startY
+    const sheetH = sheet.offsetHeight
+    const maxTranslate = sheetH - 80
+    const newTranslate = Math.max(0, Math.min(maxTranslate, sheetTouchRef.current.startTranslateY + delta))
+    sheet.style.transform = `translateY(${newTranslate}px)`
+  }
+
+  function handleSheetTouchEnd() {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    sheet.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)'
+    const rect = sheet.getBoundingClientRect()
+    const sheetH = sheet.offsetHeight
+    const noTranslateTop = window.innerHeight - sheetH
+    const currentTranslateY = rect.top - noTranslateTop
+    const snaps: { name: 'full' | 'half' | 'collapsed'; y: number }[] = [
+      { name: 'full', y: 0 },
+      { name: 'half', y: sheetH * 0.5 },
+      { name: 'collapsed', y: sheetH - 80 },
+    ]
+    const nearest = snaps.reduce((best, s) =>
+      Math.abs(s.y - currentTranslateY) < Math.abs(best.y - currentTranslateY) ? s : best
+    )
+    setSheetSnap(nearest.name)
   }
 
   const panelContent = (
@@ -537,7 +632,7 @@ export default function MapaPage() {
       )}
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative overflow-hidden">
         <MapView
           places={mapPlaces}
           destinos={ALL_MAP_DESTINOS}
@@ -548,137 +643,352 @@ export default function MapaPage() {
           onBoundsChange={setMapBounds}
         />
 
-        {/* Geocoding search overlay */}
-        <div
-          className="absolute flex flex-col"
-          style={{
-            top: isMobile ? '60px' : '16px',
-            right: '16px',
-            left: isMobile ? '16px' : 'auto',
-            width: isMobile ? undefined : '340px',
-            zIndex: 10,
-          }}
-        >
-          <div className="relative">
-            <MagnifyingGlass
-              size={16}
-              aria-hidden="true"
-              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
-            />
-            <input
-              type="text"
-              value={geoQuery}
-              onChange={e => handleGeoSearch(e.target.value)}
-              placeholder="Buscar dirección o lugar..."
-              aria-label="Buscar dirección en el mapa"
-              className="w-full text-sm rounded-xl py-3 pl-10 pr-9 outline-none"
-              style={{
-                background: 'var(--color-card)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)',
-              }}
-            />
-            {geoQuery && (
+        {/* Mobile: top search bar + filter icon */}
+        {isMobile && (
+          <div className="absolute top-0 left-0 right-0 flex items-start gap-2 px-4 pt-4" style={{ zIndex: 10 }}>
+            <div className="relative flex-1">
+              <MagnifyingGlass
+                size={16}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
+              />
+              <input
+                type="text"
+                value={geoQuery}
+                onChange={e => handleGeoSearch(e.target.value)}
+                placeholder="Buscar dirección o lugar..."
+                aria-label="Buscar dirección en el mapa"
+                className="w-full text-sm rounded-xl py-3 pl-10 pr-9 outline-none"
+                style={{
+                  background: 'var(--color-card)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              />
+              {geoQuery && (
+                <button
+                  onClick={() => { setGeoQuery(''); setGeoResults([]) }}
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+                >
+                  <X size={10} weight="bold" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            <div className="relative flex-shrink-0">
               <button
-                onClick={() => { setGeoQuery(''); setGeoResults([]) }}
-                aria-label="Limpiar búsqueda"
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+                onClick={() => setCategoriaOpen(o => !o)}
+                aria-pressed={activeCategoria !== null}
+                aria-expanded={categoriaOpen}
+                className="w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all active:scale-95"
+                style={{
+                  background: activeCategoria !== null ? 'var(--color-crimson)' : 'var(--color-card)',
+                  color: activeCategoria !== null ? 'white' : 'var(--color-text-muted)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  border: activeCategoria !== null ? 'none' : '1px solid var(--color-border)',
+                }}
               >
-                <X size={10} weight="bold" aria-hidden="true" />
+                <FunnelSimple size={20} weight={activeCategoria !== null ? 'fill' : 'regular'} aria-hidden="true" />
               </button>
+              {categoriaOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setCategoriaOpen(false)} aria-hidden="true" />
+                  <div
+                    className="absolute right-0 top-full mt-1.5 rounded-xl overflow-hidden z-20"
+                    style={{ background: 'var(--color-card)', boxShadow: '0 12px 32px rgba(0,0,0,0.18)', border: '1px solid var(--color-border)', minWidth: '220px' }}
+                  >
+                    <button
+                      onClick={() => { setActiveCategoria(null); setCategoriaOpen(false) }}
+                      className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+                      style={{
+                        color: activeCategoria === null ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                        fontWeight: activeCategoria === null ? 600 : 400,
+                        borderBottom: '1px solid var(--color-border)',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    >
+                      Todos
+                    </button>
+                    {CATEGORIAS.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => { setActiveCategoria(cat); setCategoriaOpen(false) }}
+                        className="w-full text-left px-4 py-2.5 text-sm cursor-pointer transition-colors"
+                        style={{
+                          color: activeCategoria === cat ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                          fontWeight: activeCategoria === cat ? 600 : 400,
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            {geoResults.length > 0 && (
+              <div
+                className="absolute left-4 top-full mt-1 rounded-xl overflow-hidden"
+                style={{ right: '68px', background: 'var(--color-card)', boxShadow: '0 12px 32px rgba(0,0,0,0.18)', border: '1px solid var(--color-border)', zIndex: 15 }}
+              >
+                {geoResults.map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleGeoSelect(r)}
+                    className="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors flex items-start gap-2.5"
+                    style={{ color: 'var(--color-text-primary)', borderBottom: i < geoResults.length - 1 ? '1px solid var(--color-border)' : 'none' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <MapPin size={14} weight="fill" aria-hidden="true" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} />
+                    <span className="line-clamp-2 leading-snug">{r.place_name}</span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-          {geoResults.length > 0 && (
-            <div
-              className="mt-1.5 rounded-xl overflow-hidden"
-              style={{
-                background: 'var(--color-card)',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              {geoResults.map((r, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleGeoSelect(r)}
-                  className="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors flex items-start gap-2.5"
-                  style={{ color: 'var(--color-text-primary)', borderBottom: i < geoResults.length - 1 ? '1px solid var(--color-border)' : 'none' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                >
-                  <MapPin size={14} weight="fill" aria-hidden="true" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} />
-                  <span className="line-clamp-2 leading-snug">{r.place_name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Mobile: toggle list button */}
-        {isMobile && (
-          <button
-            onClick={() => setPanelOpen(true)}
-            className="absolute top-4 left-4 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
-            style={{
-              background: 'var(--color-card)',
-              boxShadow: 'var(--shadow-card-hover)',
-              color: 'var(--color-text-primary)',
-              fontFamily: 'var(--font-family-heading)',
-              zIndex: 10,
-            }}
-          >
-            <List size={16} weight="regular" aria-hidden="true" />
-            {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
-          </button>
         )}
 
-        <div
-          className="absolute right-5 bottom-8 flex flex-col gap-3"
-          role="group"
-          aria-label="Controles del mapa"
-          style={{ zIndex: 10 }}
-        >
-          <button
-            className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95"
-            style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
-            aria-label="Centrar en mi ubicación"
+        {/* Desktop: geocoding search overlay */}
+        {!isMobile && (
+          <div
+            className="absolute flex flex-col"
+            style={{ top: '16px', right: '16px', width: '340px', zIndex: 10 }}
           >
-            <Crosshair size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
-          </button>
-        </div>
+            <div className="relative">
+              <MagnifyingGlass
+                size={16}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
+              />
+              <input
+                type="text"
+                value={geoQuery}
+                onChange={e => handleGeoSearch(e.target.value)}
+                placeholder="Buscar dirección o lugar..."
+                aria-label="Buscar dirección en el mapa"
+                className="w-full text-sm rounded-xl py-3 pl-10 pr-9 outline-none"
+                style={{
+                  background: 'var(--color-card)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              />
+              {geoQuery && (
+                <button
+                  onClick={() => { setGeoQuery(''); setGeoResults([]) }}
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+                >
+                  <X size={10} weight="bold" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            {geoResults.length > 0 && (
+              <div
+                className="mt-1.5 rounded-xl overflow-hidden"
+                style={{
+                  background: 'var(--color-card)',
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+                  border: '1px solid var(--color-border)',
+                }}
+              >
+                {geoResults.map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleGeoSelect(r)}
+                    className="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors flex items-start gap-2.5"
+                    style={{ color: 'var(--color-text-primary)', borderBottom: i < geoResults.length - 1 ? '1px solid var(--color-border)' : 'none' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-surface)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <MapPin size={14} weight="fill" aria-hidden="true" style={{ color: 'var(--color-crimson)', flexShrink: 0, marginTop: '2px' }} />
+                    <span className="line-clamp-2 leading-snug">{r.place_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Mobile: floating action buttons */}
+        {isMobile && (
+          <div
+            className="absolute right-4 bottom-24 flex flex-col gap-2.5"
+            role="group"
+            aria-label="Controles del mapa"
+            style={{ zIndex: 10 }}
+          >
+            <button
+              onClick={handleResetView}
+              className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95"
+              style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+              aria-label="Volver a vista global"
+            >
+              <GlobeHemisphereWest size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+            </button>
+            <button
+              onClick={toggleNearby}
+              disabled={geoLoading}
+              className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: nearbyMode ? 'var(--color-crimson)' : 'var(--color-card)',
+                boxShadow: nearbyMode ? '0 4px 16px rgba(196,18,48,0.3)' : 'var(--shadow-card)',
+                opacity: geoLoading ? 0.6 : 1,
+              }}
+              aria-label={geoLoading ? 'Localizando…' : 'Centrar en mi ubicación'}
+            >
+              <Crosshair size={18} weight="regular" style={{ color: nearbyMode ? 'white' : 'var(--color-crimson)' }} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        {/* Desktop: map controls */}
+        {!isMobile && (
+          <div
+            className="absolute right-5 bottom-8 flex flex-col gap-3"
+            role="group"
+            aria-label="Controles del mapa"
+            style={{ zIndex: 10 }}
+          >
+            <button
+              className="w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95"
+              style={{ background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}
+              aria-label="Centrar en mi ubicación"
+            >
+              <Crosshair size={18} weight="regular" style={{ color: 'var(--color-crimson)' }} aria-hidden="true" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Mobile: bottom sheet panel */}
+      {/* Mobile: draggable bottom sheet */}
       {isMobile && (
-        <>
-          {panelOpen && (
-            <div
-              className="fixed inset-0 z-40"
-              style={{ background: 'rgba(0,0,0,0.4)' }}
-              onClick={() => setPanelOpen(false)}
-              aria-hidden="true"
-            />
-          )}
+        <div
+          ref={sheetRef}
+          className="fixed left-0 right-0 bottom-0 flex flex-col rounded-t-2xl"
+          style={{
+            height: '85dvh',
+            background: 'var(--color-card)',
+            boxShadow: '0 -4px 24px rgba(45,20,8,0.12)',
+            transform: `translateY(${sheetSnap === 'full' ? '0' : sheetSnap === 'half' ? '50%' : 'calc(100% - 80px)'})`,
+            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
+            zIndex: 30,
+          }}
+        >
+          {/* Drag handle */}
           <div
-            className="fixed left-0 right-0 bottom-0 z-50 flex flex-col rounded-t-2xl overflow-hidden"
-            style={{
-              maxHeight: '75vh',
-              background: 'var(--color-card)',
-              boxShadow: '0 -4px 24px rgba(45,20,8,0.12)',
-              transform: panelOpen ? 'translateY(0)' : 'translateY(100%)',
-              transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
-            }}
+            className="flex-shrink-0 pt-2.5 pb-3 px-5 cursor-grab"
+            style={{ touchAction: 'none' }}
+            onTouchStart={handleSheetTouchStart}
+            onTouchMove={handleSheetTouchMove}
+            onTouchEnd={handleSheetTouchEnd}
           >
-            <div
-              className="w-10 h-1 rounded-full mx-auto mt-2.5 mb-1 flex-shrink-0"
-              style={{ background: 'var(--color-border)' }}
-              aria-hidden="true"
-            />
-            {panelContent}
+            <div className="w-10 h-1 rounded-full mx-auto mb-3" style={{ background: 'var(--color-border)' }} aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}>
+                {filtered.length} resultado{filtered.length !== 1 ? 's' : ''} en vista
+              </p>
+              {activeCategoria && (
+                <button
+                  onClick={() => setActiveCategoria(null)}
+                  className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg transition-colors"
+                  style={{ background: 'var(--color-crimson-light)', color: 'var(--color-crimson)' }}
+                >
+                  {activeCategoria}
+                  <X size={10} weight="bold" aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
-        </>
+
+          {/* Results list */}
+          <div ref={sheetScrollRef} className="flex-1 overflow-y-auto border-t" style={{ borderColor: 'var(--color-border)' }}>
+            {filtered.map(item => {
+              const isSelected = selectedId === item.id
+              const detailHref = item.kind === 'comercio' ? `/red-travel/${item.id}` : `/explorar/${item.id}`
+              return (
+                <button
+                  key={`sheet-${item.kind}-${item.id}`}
+                  data-item-id={item.id}
+                  onClick={() => handleSelect(item.id)}
+                  className="w-full text-left px-5 py-3.5 border-b cursor-pointer transition-colors"
+                  style={{
+                    borderColor: 'var(--color-border)',
+                    background: isSelected ? 'var(--color-crimson-light)' : 'transparent',
+                  }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--color-surface)' }}
+                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = isSelected ? 'var(--color-crimson-light)' : 'transparent' }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="relative flex-shrink-0 rounded-xl overflow-hidden"
+                      style={{ width: '56px', height: '56px', background: 'var(--color-border)' }}
+                    >
+                      {item.image && (
+                        <Image src={item.image} alt={item.title} fill className="object-cover" sizes="56px" />
+                      )}
+                      {item.kind === 'comercio' && (
+                        <span
+                          className="absolute bottom-0.5 right-0.5 flex items-center justify-center rounded-full text-white"
+                          style={{ width: '14px', height: '14px', background: '#EA580C', fontSize: '7px', fontWeight: 700 }}
+                          aria-label="Comercio Red Travel"
+                        >
+                          RT
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p
+                          className="font-semibold text-sm truncate"
+                          style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-family-heading)' }}
+                        >
+                          {item.title}
+                        </p>
+                        {item.rating > 0 && (
+                          <span className="flex items-center gap-0.5 flex-shrink-0">
+                            <Star size={10} weight="fill" color="#FBBF24" aria-hidden="true" />
+                            <span className="text-xs font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                              {item.rating.toFixed(1)}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                        {item.kind === 'comercio' ? `Red Travel · ${item.category}` : `${item.category} · ${item.location}`}
+                      </p>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: 'rgba(196,18,48,0.15)' }}>
+                      {item.description && (
+                        <p className="text-xs line-clamp-2 mb-2.5" style={{ color: 'var(--color-text-muted)', lineHeight: '1.5' }}>
+                          {item.description}
+                        </p>
+                      )}
+                      <Link
+                        href={detailHref}
+                        className="block text-center text-xs font-semibold py-2 rounded-lg text-white cursor-pointer transition-opacity hover:opacity-90"
+                        style={{ background: item.kind === 'comercio' ? '#EA580C' : 'var(--color-crimson)' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        Ver detalle
+                      </Link>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       )}
     </div>
   )
