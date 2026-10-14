@@ -1822,7 +1822,12 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar', id: 'lago-llanquihue',
     image: 'https://images.unsplash.com/photo-1583343863760-be6b06032bd8?w=600',
-    images: ['https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600'],
+    images: [
+      'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600',
+      'https://images.unsplash.com/photo-1578704399126-38975ba256d7?w=600',
+      'https://images.unsplash.com/photo-1548877696-abefdc512c1e?w=600',
+      'https://images.unsplash.com/photo-1616345043636-74a2088af548?w=600',
+    ],
     category: 'Lago', title: 'Lago Llanquihue',
     location: 'Puerto Varas, Chile',
     rating: 4.9, moods: ['naturaleza', 'fotografía', 'relajo'],
@@ -1833,7 +1838,12 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar', id: 'volcan-osorno',
     image: 'https://images.unsplash.com/photo-1578704399126-38975ba256d7?w=600',
-    images: ['https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600'],
+    images: [
+      'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=600',
+      'https://images.unsplash.com/photo-1528913010160-240d3500c209?w=600',
+      'https://images.unsplash.com/photo-1578704410892-86dbdab9b4e8?w=600',
+      'https://images.unsplash.com/photo-1583343863760-be6b06032bd8?w=600',
+    ],
     category: 'Volcán', title: 'Volcán Osorno',
     location: 'Puerto Varas, Chile',
     rating: 4.9, moods: ['aventura', 'naturaleza', 'fotografía'],
@@ -1844,7 +1854,10 @@ export const LUGARES: Lugar[] = [
   {
     kind: 'lugar', id: 'saltos-petrohue',
     image: 'https://images.unsplash.com/photo-1712921674876-83cda22594ec?w=600',
-    images: ['https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?w=600'],
+    images: [
+      'https://images.unsplash.com/photo-1708364220315-74c780083452?w=600',
+      'https://images.unsplash.com/photo-1661341336999-38ec1090d799?w=600',
+    ],
     category: 'Cascadas', title: 'Saltos del Petrohué',
     location: 'Puerto Varas, Chile',
     rating: 4.8, moods: ['naturaleza', 'aventura', 'fotografía'],

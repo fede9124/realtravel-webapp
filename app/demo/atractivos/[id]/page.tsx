@@ -5,7 +5,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { TransitionLink } from '@/components/ui/TransitionLink'
 import { RouteCard } from '@/components/ui/RouteCard'
-import { ImageCarousel } from '@/components/ui/ImageCarousel'
+import { HeroGallery } from '@/components/ui/HeroGallery'
 import { Tabs, type TabItem } from '@/components/ui/Tabs'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
@@ -160,7 +160,7 @@ export default function DemoLugarDetallePage({ params }: { params: Promise<{ id:
 
   return (
     <div className="min-h-[100dvh]" style={{ background: 'var(--color-surface)' }}>
-      <ImageCarousel images={allImages} alt={lugar.title} style={{ viewTransitionName: `card-${lugar.id}` } as React.CSSProperties}>
+      <HeroGallery images={allImages} alt={lugar.title} style={{ viewTransitionName: `card-${lugar.id}` } as React.CSSProperties}>
         <div className="absolute top-6 left-5 sm:left-8 z-10" style={{ zIndex: 3 }}>
           <TransitionLink href="/demo/atractivos" aria-label="Volver" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 backdrop-blur-sm text-sm font-medium transition-all hover:bg-white" style={{ color: 'var(--color-text-primary)' }}>
             <ArrowLeft size={16} aria-hidden="true" /> Atractivos
@@ -172,10 +172,10 @@ export default function DemoLugarDetallePage({ params }: { params: Promise<{ id:
             <ShareFat size={16} weight="regular" aria-hidden="true" /> Compartir
           </button>
         </div>
-      </ImageCarousel>
+      </HeroGallery>
 
-      <div className="px-5 sm:px-8 lg:px-12 py-10 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="px-5 md:px-4 lg:px-6 py-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mx-auto" style={{ maxWidth: '1536px' }}>
           <div className="lg:col-span-2 flex flex-col gap-8">
             <div>
               <h1
