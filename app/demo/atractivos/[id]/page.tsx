@@ -16,7 +16,8 @@ import {
 import { use } from 'react'
 import { notFound } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
-import { findLugar, LUGARES, RUTAS, routeCreatorComercio } from '@/lib/data'
+import { CreditFull } from '@/components/ui/PhotoCredit'
+import { creditoDeFoto, findLugar, LUGARES, RUTAS, routeCreatorComercio } from '@/lib/data'
 
 const PinMapView = dynamic(() => import('@/components/map/PinMapView'), {
   ssr: false,
@@ -150,6 +151,11 @@ export default function DemoLugarDetallePage({ params }: { params: Promise<{ id:
     if (lugar.images?.length) imgs.push(...lugar.images)
     return imgs
   }, [lugar.image, lugar.images])
+
+  const photoCredits = allImages.flatMap((src, i) => {
+    const credito = creditoDeFoto(src)
+    return credito ? [{ n: i + 1, credito }] : []
+  })
 
   const associatedRoutes = useMemo(() => RUTAS.filter(r => r.stops.includes(lugar.id) && r.destinoId === 'puerto-varas'), [lugar.id])
   const related = PV_LUGARES.filter(l => l.id !== lugar.id).slice(0, 4)
@@ -316,6 +322,23 @@ export default function DemoLugarDetallePage({ params }: { params: Promise<{ id:
             </section>
           )}
         </div>
+
+        {photoCredits.length > 0 && (
+          <section aria-labelledby="heading-creditos" className="mt-14 pt-6 border-t" style={{ borderColor: 'var(--color-border)' }}>
+            <h2 id="heading-creditos" className="text-xs font-semibold uppercase tracking-widest mb-3"
+              style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-family-heading)', letterSpacing: '0.1em' }}>
+              Créditos de las fotos
+            </h2>
+            <ol className="flex flex-col gap-1.5 text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+              {photoCredits.map(({ n, credito }) => (
+                <li key={n}>
+                  <span className="font-semibold" style={{ color: 'var(--color-text-primary)', fontVariantNumeric: 'tabular-nums' }}>Foto {n}:</span>{' '}
+                  <CreditFull credito={credito} />
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
       </div>
     </div>
   )

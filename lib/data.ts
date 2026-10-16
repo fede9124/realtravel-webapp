@@ -130,6 +130,54 @@ export interface Comercio {
   tips?: string[]
 }
 
+// ─── Créditos de fotos ────────────────────────────────────────────────────────
+
+export const LICENCIAS = {
+  'CC BY 2.0': 'https://creativecommons.org/licenses/by/2.0/',
+  'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0/',
+  'CC BY 4.0': 'https://creativecommons.org/licenses/by/4.0/',
+  'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'CC0 1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+} as const
+export type Licencia = keyof typeof LICENCIAS
+
+export interface CreditoFoto {
+  titulo: string
+  autor: string
+  autorUrl?: string
+  fuente: string
+  fuenteUrl: string
+  licencia: Licencia
+}
+
+const FLICKR_PETROHUE = {
+  stanley: 'https://live.staticflickr.com/65535/49682432913_3ab7e04e9b_b.jpg',
+  bittinger: 'https://live.staticflickr.com/5145/5604621250_7f8a7840c6_b.jpg',
+  inostrosa: 'https://live.staticflickr.com/3362/3329291639_997d7bb586_b.jpg',
+  provoste: 'https://live.staticflickr.com/65535/49982686146_6ee13b208c_b.jpg',
+}
+
+export const CREDITOS_FOTOS: Record<string, CreditoFoto> = {
+  [FLICKR_PETROHUE.stanley]: {
+    titulo: 'Saltos del Rio Petrohué', autor: 'David Stanley', autorUrl: 'https://www.flickr.com/photos/davidstanleytravel/',
+    fuente: 'Flickr', fuenteUrl: 'https://www.flickr.com/photos/davidstanleytravel/49682432913/', licencia: 'CC BY 2.0',
+  },
+  [FLICKR_PETROHUE.bittinger]: {
+    titulo: 'Saltos del Petrohue', autor: 'Steve Bittinger', autorUrl: 'https://www.flickr.com/photos/sbittinger/',
+    fuente: 'Flickr', fuenteUrl: 'https://www.flickr.com/photos/sbittinger/5604621250/', licencia: 'CC BY 2.0',
+  },
+  [FLICKR_PETROHUE.inostrosa]: {
+    titulo: 'Saltos del Petrohue', autor: 'Alonso Inostrosa Psijas', autorUrl: 'https://www.flickr.com/photos/alonsoinostrosa/',
+    fuente: 'Flickr', fuenteUrl: 'https://www.flickr.com/photos/alonsoinostrosa/3329291639/', licencia: 'CC BY-SA 2.0',
+  },
+  [FLICKR_PETROHUE.provoste]: {
+    titulo: 'Saltos de Petrohue', autor: 'Erik Provoste', autorUrl: 'https://www.flickr.com/photos/137109203@N08/',
+    fuente: 'Flickr', fuenteUrl: 'https://www.flickr.com/photos/137109203@N08/49982686146/', licencia: 'CC0 1.0',
+  },
+}
+
+export const creditoDeFoto = (src: string): CreditoFoto | undefined => CREDITOS_FOTOS[src]
+
 // ─── Lugares (50 totales) ─────────────────────────────────────────────────────
 
 export const LUGARES: Lugar[] = [
@@ -1853,10 +1901,12 @@ export const LUGARES: Lugar[] = [
   },
   {
     kind: 'lugar', id: 'saltos-petrohue',
-    image: 'https://images.unsplash.com/photo-1712921674876-83cda22594ec?w=600',
+    image: FLICKR_PETROHUE.stanley,
     images: [
-      'https://images.unsplash.com/photo-1708364220315-74c780083452?w=600',
-      'https://images.unsplash.com/photo-1661341336999-38ec1090d799?w=600',
+      FLICKR_PETROHUE.bittinger,
+      FLICKR_PETROHUE.inostrosa,
+      FLICKR_PETROHUE.provoste,
+      'https://images.unsplash.com/photo-1712921674876-83cda22594ec?w=600',
     ],
     category: 'Cascadas', title: 'Saltos del Petrohué',
     location: 'Puerto Varas, Chile',

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { CaretLeft, CaretRight, SquaresFour, X } from '@phosphor-icons/react'
 import { ImageCarousel } from './ImageCarousel'
+import { CreditFull, CreditInfoButton, CreditLine } from './PhotoCredit'
+import { creditoDeFoto, type CreditoFoto } from '@/lib/data'
 
 interface HeroGalleryProps {
   images: string[]
@@ -39,12 +41,13 @@ export function HeroGallery({ images, alt, style, children }: HeroGalleryProps) 
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const tiles = images.slice(0, MAX_TILES)
   const grid = gridFor(tiles.length)
+  const credits = images.map(creditoDeFoto)
 
   return (
     <>
       {/* Mobile: carousel */}
       <div className="md:hidden">
-        <ImageCarousel images={images} alt={alt} style={style}>
+        <ImageCarousel images={images} alt={alt} style={style} credits={credits}>
           {children}
         </ImageCarousel>
       </div>
@@ -83,6 +86,24 @@ export function HeroGallery({ images, alt, style, children }: HeroGalleryProps) 
             ))}
           </div>
 
+          {/* Credits layer: mirrors the grid without overflow clipping so popovers can escape tiles */}
+          <div
+            className="absolute inset-0 grid gap-2 pointer-events-none"
+            style={{ gridTemplateColumns: grid.columns, gridTemplateRows: grid.rows, zIndex: 4 }}
+          >
+            {tiles.map((src, i) => {
+              const credito = credits[i]
+              return (
+                <div key={src} className="relative" style={{ gridArea: grid.areas[i] }}>
+                  {credito && (i === 0
+                    ? <div className="absolute bottom-4 left-4 right-40 pointer-events-auto"><CreditLine credito={credito} /></div>
+                    : <div className="pointer-events-auto"><CreditInfoButton credito={credito} className="bottom-2.5 left-2.5" /></div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
           <div className="absolute inset-x-0 top-0 h-28 rounded-t-2xl pointer-events-none bg-gradient-to-b from-black/35 to-transparent" style={{ zIndex: 2 }} aria-hidden="true" />
           {children}
 
@@ -100,13 +121,19 @@ export function HeroGallery({ images, alt, style, children }: HeroGalleryProps) 
       </div>
 
       {lightboxIdx !== null && (
-        <Lightbox images={images} alt={alt} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+        <Lightbox images={images} credits={credits} alt={alt} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />
       )}
     </>
   )
 }
 
-function Lightbox({ images, alt, startIdx, onClose }: { images: string[]; alt: string; startIdx: number; onClose: () => void }) {
+function Lightbox({ images, credits, alt, startIdx, onClose }: {
+  images: string[]
+  credits: (CreditoFoto | undefined)[]
+  alt: string
+  startIdx: number
+  onClose: () => void
+}) {
   const [idx, setIdx] = useState(startIdx)
   const prev = () => setIdx(i => (i === 0 ? images.length - 1 : i - 1))
   const next = () => setIdx(i => (i === images.length - 1 ? 0 : i + 1))
@@ -135,9 +162,15 @@ function Lightbox({ images, alt, startIdx, onClose }: { images: string[]; alt: s
       style={{ background: 'rgba(10,6,4,0.92)', zIndex: 100 }}
       onClick={onClose}
     >
-      <div className="relative" style={{ width: 'calc(100% - 128px)', maxWidth: '1152px', height: '85vh' }} onClick={e => e.stopPropagation()}>
+      <div className="relative" style={{ width: 'calc(100% - 128px)', maxWidth: '1152px', height: '78vh' }} onClick={e => e.stopPropagation()}>
         <Image src={hiRes(images[idx])} alt={`${alt} — foto ${idx + 1}`} fill sizes="90vw" className="object-contain" />
       </div>
+
+      {credits[idx] && (
+        <p className="absolute bottom-6 left-1/2 -translate-x-1/2 max-w-[80vw] text-center text-sm text-white/75" onClick={e => e.stopPropagation()}>
+          <CreditFull credito={credits[idx]} tone="light" />
+        </p>
+      )}
 
       <button onClick={onClose} aria-label="Cerrar galería"
         className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full bg-white/15 text-white transition-colors hover:bg-white/25">

@@ -7,6 +7,10 @@ const config: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'live.staticflickr.com',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CreditLine } from './PhotoCredit'
+import type { CreditoFoto } from '@/lib/data'
 
 interface ImageCarouselProps {
   images: string[]
@@ -10,6 +12,7 @@ interface ImageCarouselProps {
   height?: string
   className?: string
   style?: React.CSSProperties
+  credits?: (CreditoFoto | undefined)[]
   children?: React.ReactNode
 }
 
@@ -19,9 +22,11 @@ export function ImageCarousel({
   height = 'clamp(280px, 45vw, 440px)',
   className = '',
   style,
+  credits,
   children,
 }: ImageCarouselProps) {
   const [idx, setIdx] = useState(0)
+  const credito = credits?.[idx]
 
   const prev = () => setIdx(i => (i === 0 ? images.length - 1 : i - 1))
   const next = () => setIdx(i => (i === images.length - 1 ? 0 : i + 1))
@@ -46,6 +51,12 @@ export function ImageCarousel({
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/30" style={{ zIndex: 2 }} />
 
       {children}
+
+      {credito && (
+        <div className="absolute bottom-10 left-3" style={{ zIndex: 3, maxWidth: 'calc(100% - 24px)' }}>
+          <CreditLine credito={credito} />
+        </div>
+      )}
 
       {images.length > 1 && (
         <>
